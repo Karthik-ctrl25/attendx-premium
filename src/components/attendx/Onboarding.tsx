@@ -129,9 +129,10 @@ export function Onboarding() {
             exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-            {step === 0 ? <ClassPicker value={choice} onChange={setChoice} /> : null}
-            {step === 1 ? <TutorialVideo onSkip={() => setStep(2)} /> : null}
-            {step === 2 ? (
+            {step === 0 ? <DetailsStep value={details} onChange={setDetails} /> : null}
+            {step === 1 ? <ClassPicker value={choice} onChange={setChoice} /> : null}
+            {step === 2 ? <TutorialVideo onSkip={() => setStep(3)} /> : null}
+            {step === 3 ? (
               subjects.length ? (
                 <AttendanceReview
                   subjects={subjects}
