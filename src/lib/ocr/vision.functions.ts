@@ -86,6 +86,10 @@ const num = (v: unknown) => {
   const n = typeof v === "number" ? v : parseFloat(String(v ?? ""));
   return Number.isFinite(n) ? n : 0;
 };
+const normalizeConfidence = (v: number) => {
+  const scaled = v > 0 && v <= 1 ? v * 100 : v;
+  return Math.max(0, Math.min(100, Math.round(scaled)));
+};
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
 export const extractAttendanceVision = createServerFn({ method: "POST" })
@@ -154,7 +158,8 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
           absent: Math.max(0, Math.round(num(r.absent))),
           total: Math.max(0, Math.round(num(r.total))),
           percentage: num(r.percentage),
-          confidence: Math.max(0, Math.min(100, Math.round(num(r.confidence)))),
+          // Some models answer on a 0-1 scale despite the instruction.
+          confidence: normalizeConfidence(num(r.confidence)),
         };
       })
       .filter((r) => r.courseCode || r.courseName);
