@@ -30,11 +30,17 @@ export interface ExtractResult {
 export function AttendanceUploader({
   existing,
   onResult,
+  duplicateCheck = true,
+  title = "Drop Attendance Screenshot Here",
 }: {
   existing: Subject[];
   onResult: (result: ExtractResult) => void;
+  /** Weekly verification compares instead of guarding duplicates. */
+  duplicateCheck?: boolean;
+  title?: string;
 }) {
   const { imports } = useApp();
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
