@@ -150,9 +150,10 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
     };
     const content = payload.choices?.[0]?.message?.content ?? "{}";
 
-    let parsed: { rows?: unknown[] };
+    type Parsed = { rows?: unknown[]; isCmrAttendancePage?: unknown; headersFound?: unknown };
+    let parsed: Parsed;
     try {
-      parsed = JSON.parse(content) as { rows?: unknown[] };
+      parsed = JSON.parse(content) as Parsed;
     } catch {
       throw new Error("The AI response could not be read. Please try again.");
     }
@@ -178,5 +179,15 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
       ? Math.round(rows.reduce((sum, r) => sum + r.confidence, 0) / rows.length)
       : 0;
 
-    return { rows, confidence };
+    const headersFound = Array.isArray(parsed.headersFound)
+      ? parsed.headersFound.map(str).filter(Boolean)
+      : [];
+
+    return {
+      rows,
+      confidence,
+      isCmrAttendancePage: parsed.isCmrAttendancePage === true,
+      headersFound,
+    };
   });
+
