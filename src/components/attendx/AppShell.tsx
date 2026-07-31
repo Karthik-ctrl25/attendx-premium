@@ -4,7 +4,6 @@ import {
   BarChart3,
   CalendarRange,
   CheckCircle2,
-  History,
   Home,
   Sparkles,
   Sun,
@@ -28,7 +27,6 @@ export const NAV: NavItem[] = [
   { to: "/timetable", label: "Timetable", icon: CalendarRange },
   { to: "/attendance", label: "Attendance", icon: CheckCircle2 },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/history", label: "History", icon: History },
 ];
 
 function Brand() {
@@ -110,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile tab bar */}
       <nav className="glass-strong fixed inset-x-3 bottom-3 z-40 flex items-center justify-between rounded-[26px] px-2 py-2 lg:hidden">
-        {NAV.filter((n) => n.to !== "/history").map((item) => {
+        {NAV.map((item) => {
           const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           return (
             <Link
