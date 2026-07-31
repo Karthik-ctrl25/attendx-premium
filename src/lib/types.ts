@@ -1,0 +1,62 @@
+export type SessionType = "Theory" | "Lab";
+
+export interface Subject {
+  code: string;
+  name: string;
+  faculty: string;
+  present: number;
+  absent: number;
+  total: number;
+}
+
+export interface ClassSlot {
+  id: string;
+  day: number; // 0 = Sunday ... 6 = Saturday
+  start: string; // "08:30"
+  end: string; // "09:30"
+  code: string;
+  name: string;
+  faculty: string;
+  room: string;
+  session: SessionType;
+}
+
+export type AttendanceAction = "present" | "absent";
+
+export interface HistoryEntry {
+  id: string;
+  ts: number;
+  code: string;
+  name: string;
+  action: AttendanceAction;
+  slotId?: string;
+  undone?: boolean;
+}
+
+export interface AppMeta {
+  setupComplete: boolean;
+  studentName: string;
+  university: string;
+  createdAt: number;
+}
+
+export interface BackupPayload {
+  version: 1;
+  exportedAt: number;
+  meta: AppMeta;
+  subjects: Subject[];
+  timetable: ClassSlot[];
+  history: HistoryEntry[];
+}
+
+export const DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
+
+export const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
