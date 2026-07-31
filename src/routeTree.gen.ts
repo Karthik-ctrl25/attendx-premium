@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TimetableRouteImport } from './routes/timetable'
 import { Route as TodayRouteImport } from './routes/today'
 import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
+import { Route as AttendanceCodeRouteImport } from './routes/attendance.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,17 +35,24 @@ const AttendanceIndexRoute = AttendanceIndexRouteImport.update({
   path: '/attendance/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttendanceCodeRoute = AttendanceCodeRouteImport.update({
+  id: '/attendance/$code',
+  path: '/attendance/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/timetable': typeof TimetableRoute
   '/today': typeof TodayRoute
+  '/attendance/$code': typeof AttendanceCodeRoute
   '/attendance/': typeof AttendanceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/timetable': typeof TimetableRoute
   '/today': typeof TodayRoute
+  '/attendance/$code': typeof AttendanceCodeRoute
   '/attendance': typeof AttendanceIndexRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,29 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/timetable': typeof TimetableRoute
   '/today': typeof TodayRoute
+  '/attendance/$code': typeof AttendanceCodeRoute
   '/attendance/': typeof AttendanceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/timetable' | '/today' | '/attendance/'
+  fullPaths:
+    '/' | '/timetable' | '/today' | '/attendance/$code' | '/attendance/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/timetable' | '/today' | '/attendance'
-  id: '__root__' | '/' | '/timetable' | '/today' | '/attendance/'
+  to: '/' | '/timetable' | '/today' | '/attendance/$code' | '/attendance'
+  id:
+    | '__root__'
+    | '/'
+    | '/timetable'
+    | '/today'
+    | '/attendance/$code'
+    | '/attendance/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TimetableRoute: typeof TimetableRoute
   TodayRoute: typeof TodayRoute
+  AttendanceCodeRoute: typeof AttendanceCodeRoute
   AttendanceIndexRoute: typeof AttendanceIndexRoute
 }
 
@@ -99,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttendanceIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attendance/$code': {
+      id: '/attendance/$code'
+      path: '/attendance/$code'
+      fullPath: '/attendance/$code'
+      preLoaderRoute: typeof AttendanceCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -106,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TimetableRoute: TimetableRoute,
   TodayRoute: TodayRoute,
+  AttendanceCodeRoute: AttendanceCodeRoute,
   AttendanceIndexRoute: AttendanceIndexRoute,
 }
 export const routeTree = rootRouteImport
