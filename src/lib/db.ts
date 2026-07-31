@@ -121,15 +121,20 @@ export const db = {
 
   async reset() {
     const conn = await getDB();
-    const tx = conn.transaction(["subjects", "timetable", "history", "meta"], "readwrite");
+    const tx = conn.transaction(
+      ["subjects", "timetable", "history", "meta", "imports"],
+      "readwrite",
+    );
     await Promise.all([
       tx.objectStore("subjects").clear(),
       tx.objectStore("timetable").clear(),
       tx.objectStore("history").clear(),
       tx.objectStore("meta").clear(),
+      tx.objectStore("imports").clear(),
     ]);
     await tx.done;
   },
+
 };
 
 export { DEFAULT_META };
