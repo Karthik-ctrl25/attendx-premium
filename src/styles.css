@@ -181,3 +181,10 @@
 @utility shadow-float {
   box-shadow: var(--shadow-float);
 }
+
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}

@@ -6,14 +6,14 @@ import {
   CheckCircle2,
   History,
   Home,
-  Lock,
-  Settings,
   Sparkles,
   Sun,
   type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
+import { ProfileMenu } from "@/components/attendx/ProfileMenu";
+import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -29,19 +29,6 @@ export const NAV: NavItem[] = [
   { to: "/attendance", label: "Attendance", icon: CheckCircle2 },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/history", label: "History", icon: History },
-  { to: "/settings", label: "Settings", icon: Settings },
-];
-
-export const FUTURE_MODULES = [
-  "Assignments",
-  "Announcements",
-  "Notes",
-  "Community",
-  "Marks",
-  "CGPA",
-  "Teacher Portal",
-  "Cloud Sync",
-  "AI Assistant",
 ];
 
 function Brand() {
@@ -60,6 +47,11 @@ function Brand() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { meta } = useApp();
+
+  useEffect(() => {
+    document.documentElement.dataset.reduceMotion = meta.reduceMotion ? "true" : "false";
+  }, [meta.reduceMotion]);
 
   return (
     <div className="min-h-dvh lg:flex">
@@ -92,26 +84,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className="glass rounded-3xl p-4">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            Coming soon
-          </p>
-          <ul className="mt-3 space-y-2">
-            {FUTURE_MODULES.slice(0, 6).map((m) => (
-              <li key={m} className="flex items-center gap-2 text-sm text-muted-foreground/80">
-                <Lock className="size-3.5" />
-                {m}
-              </li>
-            ))}
-          </ul>
-        </div>
       </aside>
 
       <main className="min-w-0 flex-1 pb-28 lg:pb-10">
         <div className="mx-auto w-full max-w-5xl px-4 pt-5 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-center justify-between lg:hidden">
-            <Brand />
-          </div>
+          <header className="mb-6 flex items-center justify-between gap-3">
+            <div className="lg:invisible">
+              <Brand />
+            </div>
+            <ProfileMenu />
+          </header>
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

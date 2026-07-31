@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { GlassCard } from "@/components/attendx/GlassCard";
-import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/store";
 import { DAYS, DAYS_SHORT } from "@/lib/types";
 import { cn } from "@/lib/utils";
