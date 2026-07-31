@@ -28,16 +28,20 @@ export function AttendanceRing({
   const color = STATUS_COLOR[statusOf(clamped, total)];
 
   return (
-    <div className={cn("relative grid place-items-center", className)} style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div
+      className={cn("relative grid w-full place-items-center", className)}
+      style={{ maxWidth: size, aspectRatio: "1 / 1" }}
+    >
+      <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full -rotate-90">
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="oklch(1 0 0 / 55%)"
+          stroke="var(--glass-border)"
           strokeWidth={stroke}
         />
+
         <motion.circle
           cx={size / 2}
           cy={size / 2}
