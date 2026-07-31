@@ -21,28 +21,37 @@ export interface VisionRow {
 export interface VisionResult {
   rows: VisionRow[];
   confidence: number;
+  /** True only when the screenshot is the CMR University ERP attendance page. */
+  isCmrAttendancePage: boolean;
+  /** Column headers the model actually saw (for diagnostics). */
+  headersFound: string[];
 }
 
 const SYSTEM_PROMPT = `You read attendance screenshots from the CMR University ERP portal ("Student Attendance" / "Attendance Details" page).
 
-The page shows one table, one row per course. Typical columns, left to right:
-Sl. No | Course Code | Course Name | Faculty Name | Total Classes (or Total) | Present | Absent | Leaves Applied | Attendance Not Entered | Attendance % | Attendance Percentage
+STEP 1 — LAYOUT CHECK (do this first).
+A valid CMR ERP attendance screenshot shows a single table whose header row contains columns equivalent to:
+Course Code, Course Name, Faculty Name, Present (Present Count), Absent (Absent Count), Total (Total Classes / Total Count), Percentage (Attendance %).
+Headers may wrap, abbreviate or reorder. List every header you can read in headersFound.
+Set isCmrAttendancePage true ONLY if you can see a course-attendance table with a course-code column, a course-name column, and at least two of present / absent / total / percentage.
+If it is any other screen (timetable, marks, fee page, random photo, document, chat, non-CMR portal), set isCmrAttendancePage false and return an EMPTY rows array. Do not extract anything.
 
-Column order can vary slightly and headers may wrap. Match values by their column header, never by position alone.
-
-Rules:
+STEP 2 — EXTRACTION (only when isCmrAttendancePage is true).
 - Return one object per course row. Skip header rows, summary/total/overall rows, pagination text, navigation and any legend.
 - IGNORE these columns entirely: Sl. No / serial number, Leaves Applied, Attendance Not Entered.
+- Match values by their column header, never by position alone.
 - Course codes look like 4ENCE2061, 24BSCS101, MAT201. Read them character by character; do not guess or "fix" them.
 - present, absent and total are integers. percentage is a number 0-100.
 - If a value is genuinely unreadable, use 0 and lower that row's confidence.
 - confidence is your certainty for that row, 0-100. Use below 90 whenever any cell is blurry, cropped, ambiguous, or inferred.
-- Never invent rows, courses, faculty or numbers. If the screenshot is not a CMR ERP attendance table, return an empty rows array.`;
+- Never invent rows, courses, faculty or numbers.`;
 
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
+    isCmrAttendancePage: { type: "boolean" },
+    headersFound: { type: "array", items: { type: "string" } },
     rows: {
       type: "array",
       items: {
@@ -71,8 +80,9 @@ const SCHEMA = {
       },
     },
   },
-  required: ["rows"],
+  required: ["isCmrAttendancePage", "headersFound", "rows"],
 } as const;
+
 
 function validateInput(input: unknown): { imageDataUrl: string } {
   const data = input as { imageDataUrl?: unknown };
@@ -140,9 +150,10 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
     };
     const content = payload.choices?.[0]?.message?.content ?? "{}";
 
-    let parsed: { rows?: unknown[] };
+    type Parsed = { rows?: unknown[]; isCmrAttendancePage?: unknown; headersFound?: unknown };
+    let parsed: Parsed;
     try {
-      parsed = JSON.parse(content) as { rows?: unknown[] };
+      parsed = JSON.parse(content) as Parsed;
     } catch {
       throw new Error("The AI response could not be read. Please try again.");
     }
@@ -168,5 +179,15 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
       ? Math.round(rows.reduce((sum, r) => sum + r.confidence, 0) / rows.length)
       : 0;
 
-    return { rows, confidence };
+    const headersFound = Array.isArray(parsed.headersFound)
+      ? parsed.headersFound.map(str).filter(Boolean)
+      : [];
+
+    return {
+      rows,
+      confidence,
+      isCmrAttendancePage: parsed.isCmrAttendancePage === true,
+      headersFound,
+    };
   });
+

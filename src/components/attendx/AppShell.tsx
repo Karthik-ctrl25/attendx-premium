@@ -12,8 +12,10 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { ProfileMenu } from "@/components/attendx/ProfileMenu";
+import { useDailyReminder } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
 
 interface NavItem {
   to: string;
@@ -45,11 +47,14 @@ function Brand() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { meta } = useApp();
+  const { meta, timetable, updateMeta } = useApp();
+
+  useDailyReminder(meta, timetable, updateMeta);
 
   useEffect(() => {
     document.documentElement.dataset.reduceMotion = meta.reduceMotion ? "true" : "false";
   }, [meta.reduceMotion]);
+
 
   return (
     <div className="min-h-dvh lg:flex">

@@ -64,15 +64,18 @@ export function AttendanceReview({
               transition={{ delay: i * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className={cn(
                 "glass glass-hover rounded-[26px] p-4",
-                s.flagged && "ring-1 ring-warn/60",
+                s.flagged && "bg-warn/5 ring-1 ring-warn/60",
               )}
             >
               {s.flagged ? (
                 <p className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-medium text-warn shadow-soft">
-                  <TriangleAlert className="size-3" /> Low confidence
-                  {typeof s.confidence === "number" ? ` · ${s.confidence}%` : ""} — please check
+                  <TriangleAlert className="size-3" />
+                  {s.flagReason ??
+                    `Low confidence${typeof s.confidence === "number" ? ` · ${s.confidence}%` : ""}`}{" "}
+                  — please check
                 </p>
               ) : null}
+
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <Input

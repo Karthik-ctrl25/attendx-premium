@@ -16,7 +16,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { DEFAULT_REMINDER_TIME, requestNotificationPermission } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
+
 import type { BackupPayload } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -485,12 +487,55 @@ function AppearancePanel() {
           />
         </button>
       </div>
+      <div className="flex items-center justify-between rounded-2xl bg-white/60 px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Daily reminder</p>
+          <p className="text-xs text-muted-foreground">
+            "Did you attend today's classes?" every evening
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={meta.reminderEnabled !== false}
+          onClick={async () => {
+            const next = meta.reminderEnabled === false;
+            if (next) await requestNotificationPermission();
+            await updateMeta({ reminderEnabled: next });
+          }}
+          className={cn(
+            "relative h-6 w-11 rounded-full transition-colors",
+            meta.reminderEnabled !== false ? "bg-ink" : "bg-secondary",
+          )}
+        >
+          <motion.span
+            layout
+            transition={{ type: "spring", stiffness: 500, damping: 34 }}
+            className={cn(
+              "absolute top-0.5 size-5 rounded-full bg-white shadow-soft",
+              meta.reminderEnabled !== false ? "left-[22px]" : "left-0.5",
+            )}
+          />
+        </button>
+      </div>
+      {meta.reminderEnabled !== false ? (
+        <label className="flex items-center justify-between rounded-2xl bg-white/60 px-4 py-3">
+          <span className="text-sm font-medium">Reminder time</span>
+          <input
+            type="time"
+            value={meta.reminderTime || DEFAULT_REMINDER_TIME}
+            onChange={(e) => updateMeta({ reminderTime: e.target.value || DEFAULT_REMINDER_TIME })}
+            className="tnum rounded-xl bg-white/80 px-3 py-1.5 text-sm shadow-soft outline-none"
+          />
+        </label>
+      ) : null}
       <div className="rounded-2xl bg-white/60 px-4 py-3">
         <p className="text-sm font-medium">Theme</p>
         <p className="text-xs text-muted-foreground">
           Soft Frosted White — a single, light glass theme tuned for readability.
         </p>
       </div>
+
     </div>
   );
 }

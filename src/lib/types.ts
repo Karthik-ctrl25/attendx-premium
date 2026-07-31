@@ -11,7 +11,10 @@ export interface Subject {
   confidence?: number;
   /** True when the row needs a human look before saving. */
   flagged?: boolean;
+  /** Why the row was flagged, shown in the review card. */
+  flagReason?: string;
 }
+
 
 
 export interface ClassSlot {
@@ -52,7 +55,16 @@ export interface AppMeta {
   reduceMotion?: boolean;
   /** Reserved for real auth (Google / Supabase) — "local" until then. */
   authProvider?: "local" | "google" | "phone";
+  /** Daily "did you attend?" reminder. */
+  reminderEnabled?: boolean;
+  /** 24h "HH:MM" — default 19:00. */
+  reminderTime?: string;
+  /** "YYYY-MM-DD" of the last fired reminder (fires once per day). */
+  lastReminderDate?: string;
+  /** Timestamp of the last ERP screenshot verification. */
+  lastVerifiedAt?: number;
 }
+
 
 /** Fingerprint of a saved attendance screenshot import (duplicate guard). */
 export interface AttendanceImport {

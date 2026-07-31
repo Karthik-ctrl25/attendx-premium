@@ -18,7 +18,12 @@ const DEFAULT_META: AppMeta = {
   email: "",
   reduceMotion: false,
   authProvider: "local",
+  reminderEnabled: true,
+  reminderTime: "19:00",
+  lastReminderDate: "",
+  lastVerifiedAt: 0,
 };
+
 
 
 let dbPromise: Promise<IDBPDatabase> | null = null;

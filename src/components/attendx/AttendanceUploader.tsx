@@ -4,7 +4,13 @@ import { useCallback, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { findDuplicate, hashFile, hashSubjects, mergeSubjects } from "@/lib/attendance-import";
-import { extractAttendanceFromImage, OCR_STAGES, type OcrStage } from "@/lib/ocr";
+import {
+  extractAttendanceFromImage,
+  NOT_CMR_MESSAGE,
+  NotCmrScreenshotError,
+  OCR_STAGES,
+  type OcrStage,
+} from "@/lib/ocr";
 import { useApp } from "@/lib/store";
 import type { Subject } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -20,14 +26,21 @@ export interface ExtractResult {
   confidence: number;
 }
 
+
 export function AttendanceUploader({
   existing,
   onResult,
+  duplicateCheck = true,
+  title = "Drop Attendance Screenshot Here",
 }: {
   existing: Subject[];
   onResult: (result: ExtractResult) => void;
+  /** Weekly verification compares instead of guarding duplicates. */
+  duplicateCheck?: boolean;
+  title?: string;
 }) {
   const { imports } = useApp();
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -63,28 +76,33 @@ export function AttendanceUploader({
           confidence: extraction.confidence,
         };
 
-        const dup = subjects.length ? findDuplicate(imports, fileHash, dataHash) : null;
+        const dup =
+          duplicateCheck && subjects.length ? findDuplicate(imports, fileHash, dataHash) : null;
         if (dup) {
           setPending(result);
           setDuplicateKind(dup.kind);
         } else if (!subjects.length) {
-          setError(
-            "We couldn't find an attendance table in that screenshot. Upload the full ERP attendance page.",
-          );
+          setError(NOT_CMR_MESSAGE);
         } else {
           onResult(result);
         }
       } catch (err) {
-        setError(
-          err instanceof Error && err.message
-            ? err.message
-            : "Could not read that screenshot. Try a clearer image.",
-        );
+        if (err instanceof NotCmrScreenshotError) {
+          setError(NOT_CMR_MESSAGE);
+        } else {
+          setError(
+            err instanceof Error && err.message
+              ? err.message
+              : "Could not read that screenshot. Try a clearer image.",
+          );
+        }
+
       } finally {
         setBusy(false);
       }
     },
-    [imports, onResult],
+    [duplicateCheck, imports, onResult],
+
   );
 
 
@@ -168,7 +186,8 @@ export function AttendanceUploader({
               </motion.div>
               <div>
                 <p className="font-display text-xl font-semibold tracking-tight">
-                  Drop Attendance Screenshot Here
+                  {title}
+
                 </p>
                 <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   or
