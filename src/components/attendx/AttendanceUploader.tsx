@@ -4,7 +4,13 @@ import { useCallback, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { findDuplicate, hashFile, hashSubjects, mergeSubjects } from "@/lib/attendance-import";
-import { extractAttendanceFromImage, OCR_STAGES, type OcrStage } from "@/lib/ocr";
+import {
+  extractAttendanceFromImage,
+  NOT_CMR_MESSAGE,
+  NotCmrScreenshotError,
+  OCR_STAGES,
+  type OcrStage,
+} from "@/lib/ocr";
 import { useApp } from "@/lib/store";
 import type { Subject } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -19,6 +25,7 @@ export interface ExtractResult {
   dataHash: string;
   confidence: number;
 }
+
 
 export function AttendanceUploader({
   existing,
