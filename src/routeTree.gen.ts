@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TimetableRouteImport } from './routes/timetable'
 import { Route as TodayRouteImport } from './routes/today'
+import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const TodayRoute = TodayRouteImport.update({
   path: '/today',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttendanceIndexRoute = AttendanceIndexRouteImport.update({
+  id: '/attendance/',
+  path: '/attendance/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/timetable': typeof TimetableRoute
   '/today': typeof TodayRoute
+  '/attendance/': typeof AttendanceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/timetable': typeof TimetableRoute
   '/today': typeof TodayRoute
+  '/attendance': typeof AttendanceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/timetable': typeof TimetableRoute
   '/today': typeof TodayRoute
+  '/attendance/': typeof AttendanceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/timetable' | '/today'
+  fullPaths: '/' | '/timetable' | '/today' | '/attendance/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/timetable' | '/today'
-  id: '__root__' | '/' | '/timetable' | '/today'
+  to: '/' | '/timetable' | '/today' | '/attendance'
+  id: '__root__' | '/' | '/timetable' | '/today' | '/attendance/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TimetableRoute: typeof TimetableRoute
   TodayRoute: typeof TodayRoute
+  AttendanceIndexRoute: typeof AttendanceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TodayRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attendance/': {
+      id: '/attendance/'
+      path: '/attendance'
+      fullPath: '/attendance/'
+      preLoaderRoute: typeof AttendanceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TimetableRoute: TimetableRoute,
   TodayRoute: TodayRoute,
+  AttendanceIndexRoute: AttendanceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
