@@ -76,14 +76,13 @@ export function AttendanceUploader({
           confidence: extraction.confidence,
         };
 
-        const dup = subjects.length ? findDuplicate(imports, fileHash, dataHash) : null;
+        const dup =
+          duplicateCheck && subjects.length ? findDuplicate(imports, fileHash, dataHash) : null;
         if (dup) {
           setPending(result);
           setDuplicateKind(dup.kind);
         } else if (!subjects.length) {
-          setError(
-            "We couldn't find an attendance table in that screenshot. Upload the full ERP attendance page.",
-          );
+          setError(NOT_CMR_MESSAGE);
         } else {
           onResult(result);
         }
@@ -102,7 +101,8 @@ export function AttendanceUploader({
         setBusy(false);
       }
     },
-    [imports, onResult],
+    [duplicateCheck, imports, onResult],
+
   );
 
 
