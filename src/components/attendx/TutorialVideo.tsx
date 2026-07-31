@@ -101,7 +101,7 @@ export function TutorialVideo({ src, onSkip }: { src?: string; onSkip: () => voi
 
       <ol className="glass grid gap-2 rounded-3xl p-5 sm:grid-cols-2">
         {STEPS.map((s, i) => (
-          <li key={s} className="flex items-center gap-3 text-sm">
+          <li key={`${i}-${s}`} className="flex items-center gap-3 text-sm">
             <span className="tnum grid size-6 shrink-0 place-items-center rounded-full bg-white/80 text-[11px] font-semibold shadow-soft">
               {i + 1}
             </span>
