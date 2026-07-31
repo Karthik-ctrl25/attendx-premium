@@ -1,9 +1,9 @@
 import { openDB, type IDBPDatabase } from "idb";
 
-import type { AppMeta, ClassSlot, HistoryEntry, Subject } from "./types";
+import type { AppMeta, AttendanceImport, ClassSlot, HistoryEntry, Subject } from "./types";
 
 const DB_NAME = "attendx";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const DEFAULT_META: AppMeta = {
   setupComplete: false,
@@ -17,7 +17,9 @@ const DEFAULT_META: AppMeta = {
   section: "",
   email: "",
   reduceMotion: false,
+  authProvider: "local",
 };
+
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
