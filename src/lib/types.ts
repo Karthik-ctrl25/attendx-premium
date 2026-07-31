@@ -45,7 +45,20 @@ export interface AppMeta {
   section?: string;
   email?: string;
   reduceMotion?: boolean;
+  /** Reserved for real auth (Google / Supabase) — "local" until then. */
+  authProvider?: "local" | "google" | "phone";
 }
+
+/** Fingerprint of a saved attendance screenshot import (duplicate guard). */
+export interface AttendanceImport {
+  id: string;
+  ts: number;
+  fileHash: string;
+  dataHash: string;
+  subjectCount: number;
+  confidence: number;
+}
+
 
 export interface BackupPayload {
   version: 1;
