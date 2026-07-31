@@ -12,6 +12,7 @@ import { db, DEFAULT_META } from "./db";
 import type {
   AppMeta,
   AttendanceAction,
+  AttendanceImport,
   BackupPayload,
   ClassSlot,
   HistoryEntry,
@@ -24,6 +25,8 @@ interface AppState {
   subjects: Subject[];
   timetable: ClassSlot[];
   history: HistoryEntry[];
+  imports: AttendanceImport[];
+  recordImport: (entry: Omit<AttendanceImport, "id" | "ts">) => Promise<void>;
   mark: (code: string, action: AttendanceAction, slotId?: string) => Promise<void>;
   undo: (entryId: string) => Promise<void>;
   saveSubjects: (subjects: Subject[]) => Promise<void>;
@@ -49,6 +52,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [timetable, setTimetable] = useState<ClassSlot[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [imports, setImports] = useState<AttendanceImport[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +63,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setSubjects(data.subjects);
         setTimetable(data.timetable);
         setHistory(data.history);
+        setImports(data.imports);
       })
       .catch(() => undefined)
       .finally(() => !cancelled && setReady(true));
@@ -71,6 +76,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setSubjects(next);
     await db.putSubjects(next);
   }, []);
+
+  const recordImport = useCallback(
+    async (entry: Omit<AttendanceImport, "id" | "ts">) => {
+      const full: AttendanceImport = { ...entry, id: uid(), ts: Date.now() };
+      setImports((prev) => [full, ...prev]);
+      await db.putImport(full);
+    },
+    [],
+  );
 
   const mark = useCallback(
     async (code: string, action: AttendanceAction, slotId?: string) => {
@@ -202,6 +216,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setSubjects([]);
     setTimetable([]);
     setHistory([]);
+    setImports([]);
     await db.reset();
   }, []);
 
@@ -212,6 +227,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       subjects,
       timetable,
       history,
+      imports,
+      recordImport,
       mark,
       undo,
       saveSubjects,
@@ -231,6 +248,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       subjects,
       timetable,
       history,
+      imports,
+      recordImport,
       mark,
       undo,
       saveSubjects,
