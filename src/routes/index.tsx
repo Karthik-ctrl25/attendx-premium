@@ -177,7 +177,7 @@ function Dashboard() {
           </div>
         ) : (
           <GlassCard className="p-8 text-center text-sm text-muted-foreground">
-            No subjects yet — add them from Settings.
+            No subjects yet — import them from your profile menu.
           </GlassCard>
         )}
       </section>

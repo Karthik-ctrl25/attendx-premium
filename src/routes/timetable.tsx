@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { GlassCard } from "@/components/attendx/GlassCard";
-import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/store";
 import { DAYS, DAYS_SHORT } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -111,11 +110,8 @@ function TimetablePage() {
         <GlassCard className="p-10 text-center">
           <p className="font-display text-lg font-semibold">Nothing scheduled</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Edit your timetable anytime from Settings.
+            Import or edit your timetable anytime from the profile menu.
           </p>
-          <Button asChild variant="secondary" className="mt-5 rounded-2xl">
-            <a href="/settings">Open Settings</a>
-          </Button>
         </GlassCard>
       )}
     </div>
