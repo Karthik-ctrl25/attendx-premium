@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, ArrowUpRight, Clock, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Clock, ShieldCheck, Sparkles } from "lucide-react";
 
 import { AttendanceRing } from "@/components/attendx/AttendanceRing";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
 import { SubjectCard } from "@/components/attendx/SubjectCard";
 import { Button } from "@/components/ui/button";
 import { overallStats, percent, statusOf } from "@/lib/attendance";
+import { needsWeeklyVerification } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
+
 import { DAYS } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
