@@ -4,20 +4,14 @@ import { useCallback, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { findDuplicate, hashFile, hashSubjects, mergeSubjects } from "@/lib/attendance-import";
-import { parseAttendance, readImage } from "@/lib/ocr";
+import { extractAttendanceFromImage, OCR_STAGES, type OcrStage } from "@/lib/ocr";
 import { useApp } from "@/lib/store";
 import type { Subject } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const ACCEPT = ["image/png", "image/jpeg", "image/jpg"];
 
-const STAGES = [
-  "Reading Screenshot...",
-  "Detecting Subjects...",
-  "Reading Attendance...",
-  "Calculating Percentage...",
-  "Almost Done...",
-];
+const STAGES = OCR_STAGES;
 
 export interface ExtractResult {
   subjects: Subject[];
@@ -53,20 +47,20 @@ export function AttendanceUploader({
       setBusy(true);
       setStage(0);
       try {
-        const [fileHash, ocr] = await Promise.all([
+        const [fileHash, extraction] = await Promise.all([
           hashFile(file),
-          readImage(file, (_s, pct) =>
-            setStage(Math.min(STAGES.length - 1, Math.floor((pct / 100) * STAGES.length))),
-          ),
+          extractAttendanceFromImage(file, (s: OcrStage) => {
+            const index = STAGES.indexOf(s);
+            if (index >= 0) setStage(index);
+          }),
         ]);
-        setStage(STAGES.length - 1);
-        const subjects = parseAttendance(ocr.text);
+        const subjects = extraction.subjects;
         const dataHash = await hashSubjects(subjects);
         const result: ExtractResult = {
           subjects,
           fileHash,
           dataHash,
-          confidence: ocr.confidence,
+          confidence: extraction.confidence,
         };
 
         const dup = subjects.length ? findDuplicate(imports, fileHash, dataHash) : null;
@@ -75,19 +69,24 @@ export function AttendanceUploader({
           setDuplicateKind(dup.kind);
         } else if (!subjects.length) {
           setError(
-            "We couldn't read any subjects from that screenshot. Try a clearer, full-page image.",
+            "We couldn't find an attendance table in that screenshot. Upload the full ERP attendance page.",
           );
         } else {
           onResult(result);
         }
-      } catch {
-        setError("Could not read that screenshot. Try a clearer image.");
+      } catch (err) {
+        setError(
+          err instanceof Error && err.message
+            ? err.message
+            : "Could not read that screenshot. Try a clearer image.",
+        );
       } finally {
         setBusy(false);
       }
     },
     [imports, onResult],
   );
+
 
   return (
     <div className="space-y-4">
