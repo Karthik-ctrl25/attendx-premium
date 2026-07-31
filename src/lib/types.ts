@@ -11,7 +11,10 @@ export interface Subject {
   confidence?: number;
   /** True when the row needs a human look before saving. */
   flagged?: boolean;
+  /** Why the row was flagged, shown in the review card. */
+  flagReason?: string;
 }
+
 
 
 export interface ClassSlot {
