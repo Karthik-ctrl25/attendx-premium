@@ -15,6 +15,7 @@ import { AppDataProvider, useApp } from "../lib/store";
 import { AppShell } from "../components/attendx/AppShell";
 import { Onboarding } from "../components/attendx/Onboarding";
 import { Toaster } from "../components/ui/sonner";
+import { registerServiceWorker } from "../lib/register-sw";
 
 function NotFoundComponent() {
   return (
@@ -153,6 +154,10 @@ function SetupGate() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
