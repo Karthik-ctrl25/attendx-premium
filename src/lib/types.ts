@@ -7,7 +7,12 @@ export interface Subject {
   present: number;
   absent: number;
   total: number;
+  /** OCR confidence 0-100 for the imported row (absent for manual entries). */
+  confidence?: number;
+  /** True when the row needs a human look before saving. */
+  flagged?: boolean;
 }
+
 
 export interface ClassSlot {
   id: string;
