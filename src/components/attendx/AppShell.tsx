@@ -12,8 +12,10 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { ProfileMenu } from "@/components/attendx/ProfileMenu";
+import { useDailyReminder } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
 
 interface NavItem {
   to: string;
