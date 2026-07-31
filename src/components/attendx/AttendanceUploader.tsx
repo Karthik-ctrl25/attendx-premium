@@ -82,11 +82,16 @@ export function AttendanceUploader({
           onResult(result);
         }
       } catch (err) {
-        setError(
-          err instanceof Error && err.message
-            ? err.message
-            : "Could not read that screenshot. Try a clearer image.",
-        );
+        if (err instanceof NotCmrScreenshotError) {
+          setError(NOT_CMR_MESSAGE);
+        } else {
+          setError(
+            err instanceof Error && err.message
+              ? err.message
+              : "Could not read that screenshot. Try a clearer image.",
+          );
+        }
+
       } finally {
         setBusy(false);
       }
