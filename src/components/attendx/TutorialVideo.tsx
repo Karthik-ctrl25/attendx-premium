@@ -73,7 +73,7 @@ export function TutorialVideo({ src, onSkip }: { src?: string; onSkip: () => voi
             <div className="flex gap-1.5">
               {STEPS.map((s, i) => (
                 <span
-                  key={s}
+                  key={`${i}-${s}`}
                   className={`h-1 rounded-full transition-all ${
                     i <= step ? "w-6 bg-foreground/70" : "w-3 bg-foreground/15"
                   }`}
