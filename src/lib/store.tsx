@@ -32,6 +32,7 @@ interface AppState {
   removeSubject: (code: string) => Promise<void>;
   saveTimetable: (slots: ClassSlot[]) => Promise<void>;
   completeSetup: (name: string) => Promise<void>;
+  updateMeta: (patch: Partial<AppMeta>) => Promise<void>;
   exportBackup: () => BackupPayload;
   restoreBackup: (payload: BackupPayload) => Promise<void>;
   resetApp: () => Promise<void>;
@@ -160,6 +161,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [meta],
   );
 
+  const updateMeta = useCallback(
+    async (patch: Partial<AppMeta>) => {
+      const next: AppMeta = { ...meta, ...patch };
+      setMeta(next);
+      await db.putMeta(next);
+    },
+    [meta],
+  );
+
   const exportBackup = useCallback(
     (): BackupPayload => ({
       version: 1,
@@ -210,6 +220,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       removeSubject,
       saveTimetable,
       completeSetup,
+      updateMeta,
       exportBackup,
       restoreBackup,
       resetApp,
@@ -228,6 +239,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       removeSubject,
       saveTimetable,
       completeSetup,
+      updateMeta,
       exportBackup,
       restoreBackup,
       resetApp,

@@ -41,7 +41,7 @@ function TodayPage() {
       return;
     }
     if (!subjects.some((s) => s.code === code)) {
-      toast.error("Subject not found. Add it in Settings first.");
+      toast.error("Subject not found. Import your subjects first.");
       return;
     }
     await mark(code, action, slotId);

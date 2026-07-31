@@ -111,11 +111,8 @@ function TimetablePage() {
         <GlassCard className="p-10 text-center">
           <p className="font-display text-lg font-semibold">Nothing scheduled</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Edit your timetable anytime from Settings.
+            Import or edit your timetable anytime from the profile menu.
           </p>
-          <Button asChild variant="secondary" className="mt-5 rounded-2xl">
-            <a href="/settings">Open Settings</a>
-          </Button>
         </GlassCard>
       )}
     </div>

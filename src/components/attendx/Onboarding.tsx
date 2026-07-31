@@ -193,7 +193,7 @@ export function Onboarding() {
               </p>
               <p className="mt-6 text-sm text-muted-foreground">
                 AttendX now works completely offline. You can edit subjects, timetable and counts
-                anytime from Settings.
+                anytime from your profile menu.
               </p>
             </div>
           ) : null}

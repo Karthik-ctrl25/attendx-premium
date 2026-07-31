@@ -10,6 +10,13 @@ const DEFAULT_META: AppMeta = {
   studentName: "",
   university: "CMR University",
   createdAt: Date.now(),
+  photo: "",
+  usn: "",
+  department: "",
+  semester: "",
+  section: "",
+  email: "",
+  reduceMotion: false,
 };
 
 let dbPromise: Promise<IDBPDatabase> | null = null;

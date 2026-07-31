@@ -38,6 +38,13 @@ export interface AppMeta {
   studentName: string;
   university: string;
   createdAt: number;
+  photo?: string;
+  usn?: string;
+  department?: string;
+  semester?: string;
+  section?: string;
+  email?: string;
+  reduceMotion?: boolean;
 }
 
 export interface BackupPayload {
