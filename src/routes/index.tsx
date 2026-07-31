@@ -49,6 +49,27 @@ function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {needsWeeklyVerification(meta) ? (
+        <GlassCard className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-white/75 shadow-soft">
+              <ShieldCheck className="size-[18px] text-muted-foreground" />
+            </span>
+            <div>
+              <p className="font-display text-[15px] font-semibold tracking-tight">
+                Verify Attendance
+              </p>
+              <p className="text-sm text-muted-foreground">
+                It's been a week — cross-check your records with a fresh ERP screenshot.
+              </p>
+            </div>
+          </div>
+          <Button asChild className="h-10 shrink-0 rounded-2xl">
+            <Link to="/verify">Verify now</Link>
+          </Button>
+        </GlassCard>
+      ) : null}
+
       <header className="pt-2">
         <p className="text-sm text-muted-foreground">
           {DAYS[day]} · {now.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
