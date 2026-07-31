@@ -52,7 +52,8 @@ export interface AppMeta {
   semester?: string;
   section?: string;
   email?: string;
-  reduceMotion?: boolean;
+  /** UI theme — light is the default. */
+  theme?: "light" | "dark";
   /** Reserved for real auth (Google / Supabase) — "local" until then. */
   authProvider?: "local" | "google" | "phone";
   /** Daily "did you attend?" reminder. */

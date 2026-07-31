@@ -182,9 +182,69 @@
   box-shadow: var(--shadow-float);
 }
 
-[data-reduce-motion="true"] *,
-[data-reduce-motion="true"] *::before,
-[data-reduce-motion="true"] *::after {
-  animation-duration: 0.001ms !important;
-  transition-duration: 0.001ms !important;
+/* ---------------------------------------------------------------
+ * Dark theme — same frosted language, deep ink surfaces.
+ * ------------------------------------------------------------- */
+.dark {
+  --background: oklch(0.21 0.008 250);
+  --foreground: oklch(0.95 0.004 250);
+  --card: oklch(0.27 0.008 250);
+  --card-foreground: oklch(0.95 0.004 250);
+  --popover: oklch(0.28 0.008 250);
+  --popover-foreground: oklch(0.95 0.004 250);
+
+  --primary: oklch(0.8 0.012 250);
+  --primary-foreground: oklch(0.22 0.008 250);
+  --secondary: oklch(0.34 0.008 250);
+  --secondary-foreground: oklch(0.95 0.004 250);
+
+  --muted: oklch(0.32 0.008 250);
+  --muted-foreground: oklch(0.74 0.008 250);
+  --accent: oklch(0.32 0.008 250);
+  --accent-foreground: oklch(0.95 0.004 250);
+
+  --ink: oklch(0.95 0.004 250);
+  --ink-foreground: oklch(0.22 0.008 250);
+
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.78 0.02 250);
+
+  --glass: oklch(1 0 0 / 8%);
+  --glass-border: oklch(1 0 0 / 12%);
+
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 30%), 0 12px 32px -12px oklch(0 0 0 / 55%);
+  --shadow-float: 0 2px 6px oklch(0 0 0 / 35%), 0 28px 60px -24px oklch(0 0 0 / 65%);
+  --gradient-page: radial-gradient(
+      120% 90% at 12% -10%,
+      oklch(0.34 0.012 250 / 85%) 0%,
+      oklch(0 0 0 / 0%) 55%
+    ),
+    radial-gradient(90% 70% at 100% 0%, oklch(0.32 0.02 250 / 75%) 0%, oklch(0 0 0 / 0%) 60%),
+    linear-gradient(180deg, oklch(0.235 0.008 250) 0%, oklch(0.185 0.008 250) 100%);
+  --gradient-glass: linear-gradient(150deg, oklch(1 0 0 / 10%) 0%, oklch(1 0 0 / 4%) 100%);
+  --gradient-ink: linear-gradient(150deg, oklch(0.96 0.004 250) 0%, oklch(0.86 0.006 250) 100%);
 }
+
+.dark .glass-strong {
+  background: linear-gradient(150deg, oklch(1 0 0 / 14%) 0%, oklch(1 0 0 / 6%) 100%);
+}
+
+/* Frosted surfaces are written as white overlays; retint them in dark mode. */
+.dark [class*="bg-white/"] {
+  background-color: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+.dark [class*="border-white/"] {
+  border-color: var(--glass-border);
+}
+
+.dark [class*="ring-white/"] {
+  --tw-ring-color: var(--glass-border);
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
