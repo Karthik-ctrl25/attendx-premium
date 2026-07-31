@@ -63,7 +63,7 @@ function AttendanceIndex() {
           </div>
         ) : (
           <GlassCard className="p-10 text-center text-sm text-muted-foreground">
-            No subjects yet. Import them from your profile menu.
+            No subjects yet. Upload an attendance screenshot to get started.
           </GlassCard>
         )}
       </section>
