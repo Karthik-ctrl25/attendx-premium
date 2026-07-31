@@ -10,18 +10,29 @@ import {
   type ExtractResult,
 } from "@/components/attendx/AttendanceUploader";
 import { AttendanceReview } from "@/components/attendx/AttendanceReview";
+import {
+  DetailsStep,
+  detailsReady,
+  type StudentDetails,
+} from "@/components/attendx/DetailsStep";
 import { TutorialVideo } from "@/components/attendx/TutorialVideo";
 import { getTimetableFor } from "@/lib/timetable-dataset";
 import { useApp } from "@/lib/store";
 import type { ClassSlot, Subject } from "@/lib/types";
 
-const STEPS = ["Your class", "Tutorial", "Attendance"];
+const STEPS = ["Details", "Your class", "Tutorial", "Attendance"];
 const LOW_CONFIDENCE = 70;
 
 export function Onboarding() {
   const { saveTimetable, saveSubjects, completeSetup, updateMeta, recordImport } = useApp();
   const [authed, setAuthed] = useState(false);
   const [step, setStep] = useState(0);
+  const [details, setDetails] = useState<StudentDetails>({
+    studentName: "",
+    usn: "",
+    email: "",
+    photo: "",
+  });
   const [choice, setChoice] = useState<ClassChoice>({
     department: "",
     semester: "",
@@ -35,17 +46,28 @@ export function Onboarding() {
   if (!authed) return <AuthScreen onContinue={() => setAuthed(true)} />;
 
   const classReady = Boolean(choice.department && choice.semester && choice.section);
-  const canContinue = step === 0 ? classReady : step === 1 ? true : subjects.length > 0;
+  const canContinue =
+    step === 0
+      ? detailsReady(details)
+      : step === 1
+        ? classReady
+        : step === 2
+          ? true
+          : subjects.length > 0;
   const isLast = step === STEPS.length - 1;
 
   const next = async () => {
     if (step === 0) {
-      setSlots(getTimetableFor(choice.department, choice.semester, choice.section));
       setStep(1);
       return;
     }
     if (step === 1) {
+      setSlots(getTimetableFor(choice.department, choice.semester, choice.section));
       setStep(2);
+      return;
+    }
+    if (step === 2) {
+      setStep(3);
       return;
     }
     setSaving(true);
@@ -61,16 +83,21 @@ export function Onboarding() {
         });
       }
       await updateMeta({
+        studentName: details.studentName.trim(),
+        usn: details.usn.trim(),
+        email: details.email.trim(),
+        photo: details.photo,
         department: choice.department,
         semester: choice.semester,
         section: choice.section,
         authProvider: "google",
       });
-      await completeSetup("");
+      await completeSetup(details.studentName.trim());
     } finally {
       setSaving(false);
     }
   };
+
 
   return (
     <div className="min-h-dvh">
