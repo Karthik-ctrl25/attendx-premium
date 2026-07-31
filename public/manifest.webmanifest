@@ -1,0 +1,16 @@
+{
+  "name": "AttendX — Smart Attendance & Timetable",
+  "short_name": "AttendX",
+  "description": "Offline-first attendance tracker and smart timetable for CMR University students.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#DADDE1",
+  "theme_color": "#DADDE1",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
