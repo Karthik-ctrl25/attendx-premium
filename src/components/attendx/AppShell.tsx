@@ -52,12 +52,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   useDailyReminder(meta, timetable, updateMeta);
 
   useEffect(() => {
-    document.documentElement.dataset.reduceMotion = meta.reduceMotion ? "true" : "false";
-  }, [meta.reduceMotion]);
+    document.documentElement.classList.toggle("dark", meta.theme === "dark");
+  }, [meta.theme]);
 
 
   return (
-    <div className="min-h-dvh lg:flex">
+    <div className="min-h-dvh overflow-x-hidden lg:flex">
+
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 p-5 lg:flex">
         <Brand />
