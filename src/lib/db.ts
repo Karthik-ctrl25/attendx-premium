@@ -42,6 +42,9 @@ function getDB() {
         if (!db.objectStoreNames.contains("meta")) {
           db.createObjectStore("meta");
         }
+        if (!db.objectStoreNames.contains("imports")) {
+          db.createObjectStore("imports", { keyPath: "id" });
+        }
       },
     });
   }
@@ -51,19 +54,27 @@ function getDB() {
 export const db = {
   async loadAll() {
     const conn = await getDB();
-    const [subjects, timetable, history, meta] = await Promise.all([
+    const [subjects, timetable, history, meta, imports] = await Promise.all([
       conn.getAll("subjects") as Promise<Subject[]>,
       conn.getAll("timetable") as Promise<ClassSlot[]>,
       conn.getAll("history") as Promise<HistoryEntry[]>,
       conn.get("meta", "app") as Promise<AppMeta | undefined>,
+      conn.getAll("imports") as Promise<AttendanceImport[]>,
     ]);
     return {
       subjects,
       timetable,
       history: history.sort((a, b) => b.ts - a.ts),
       meta: { ...DEFAULT_META, ...(meta ?? {}) },
+      imports: imports.sort((a, b) => b.ts - a.ts),
     };
   },
+
+  async putImport(entry: AttendanceImport) {
+    const conn = await getDB();
+    await conn.put("imports", entry);
+  },
+
 
   async putSubjects(subjects: Subject[]) {
     const conn = await getDB();
