@@ -47,11 +47,14 @@ function Brand() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { meta } = useApp();
+  const { meta, timetable, updateMeta } = useApp();
+
+  useDailyReminder(meta, timetable, updateMeta);
 
   useEffect(() => {
     document.documentElement.dataset.reduceMotion = meta.reduceMotion ? "true" : "false";
   }, [meta.reduceMotion]);
+
 
   return (
     <div className="min-h-dvh lg:flex">
