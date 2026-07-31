@@ -186,7 +186,8 @@ export function AttendanceUploader({
               </motion.div>
               <div>
                 <p className="font-display text-xl font-semibold tracking-tight">
-                  Drop Attendance Screenshot Here
+                  {title}
+
                 </p>
                 <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   or
