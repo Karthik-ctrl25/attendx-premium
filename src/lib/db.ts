@@ -1,9 +1,9 @@
 import { openDB, type IDBPDatabase } from "idb";
 
-import type { AppMeta, ClassSlot, HistoryEntry, Subject } from "./types";
+import type { AppMeta, AttendanceImport, ClassSlot, HistoryEntry, Subject } from "./types";
 
 const DB_NAME = "attendx";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const DEFAULT_META: AppMeta = {
   setupComplete: false,
@@ -17,7 +17,9 @@ const DEFAULT_META: AppMeta = {
   section: "",
   email: "",
   reduceMotion: false,
+  authProvider: "local",
 };
+
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -40,6 +42,9 @@ function getDB() {
         if (!db.objectStoreNames.contains("meta")) {
           db.createObjectStore("meta");
         }
+        if (!db.objectStoreNames.contains("imports")) {
+          db.createObjectStore("imports", { keyPath: "id" });
+        }
       },
     });
   }
@@ -49,19 +54,27 @@ function getDB() {
 export const db = {
   async loadAll() {
     const conn = await getDB();
-    const [subjects, timetable, history, meta] = await Promise.all([
+    const [subjects, timetable, history, meta, imports] = await Promise.all([
       conn.getAll("subjects") as Promise<Subject[]>,
       conn.getAll("timetable") as Promise<ClassSlot[]>,
       conn.getAll("history") as Promise<HistoryEntry[]>,
       conn.get("meta", "app") as Promise<AppMeta | undefined>,
+      conn.getAll("imports") as Promise<AttendanceImport[]>,
     ]);
     return {
       subjects,
       timetable,
       history: history.sort((a, b) => b.ts - a.ts),
       meta: { ...DEFAULT_META, ...(meta ?? {}) },
+      imports: imports.sort((a, b) => b.ts - a.ts),
     };
   },
+
+  async putImport(entry: AttendanceImport) {
+    const conn = await getDB();
+    await conn.put("imports", entry);
+  },
+
 
   async putSubjects(subjects: Subject[]) {
     const conn = await getDB();
@@ -108,15 +121,20 @@ export const db = {
 
   async reset() {
     const conn = await getDB();
-    const tx = conn.transaction(["subjects", "timetable", "history", "meta"], "readwrite");
+    const tx = conn.transaction(
+      ["subjects", "timetable", "history", "meta", "imports"],
+      "readwrite",
+    );
     await Promise.all([
       tx.objectStore("subjects").clear(),
       tx.objectStore("timetable").clear(),
       tx.objectStore("history").clear(),
       tx.objectStore("meta").clear(),
+      tx.objectStore("imports").clear(),
     ]);
     await tx.done;
   },
+
 };
 
 export { DEFAULT_META };

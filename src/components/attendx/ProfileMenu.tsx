@@ -1,11 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  CalendarPlus,
   ChevronLeft,
   Database,
   Download,
   Info,
-  ListChecks,
   Palette,
   Save,
   Upload,
@@ -15,21 +13,16 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { FileDrop } from "@/components/attendx/FileDrop";
-import { SubjectsEditor, TimetableEditor } from "@/components/attendx/Editors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { parseAttendance, parseSchedule, readImageText, subjectsFromTimetable } from "@/lib/ocr";
 import { useApp } from "@/lib/store";
-import type { BackupPayload, ClassSlot, Subject } from "@/lib/types";
+import type { BackupPayload } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type View =
   | "root"
   | "profile"
-  | "import-timetable"
-  | "import-attendance"
   | "export"
   | "backup"
   | "appearance"
@@ -37,10 +30,8 @@ type View =
 
 const MENU: { view: View; label: string; icon: LucideIcon }[] = [
   { view: "profile", label: "Academic Profile", icon: User },
-  { view: "import-timetable", label: "Import Timetable", icon: CalendarPlus },
-  { view: "import-attendance", label: "Import Attendance", icon: ListChecks },
   { view: "export", label: "Export Data", icon: Download },
-  { view: "backup", label: "Backup & Restore", icon: Database },
+  { view: "backup", label: "Backup", icon: Database },
   { view: "appearance", label: "Appearance", icon: Palette },
   { view: "about", label: "About AttendX", icon: Info },
 ];
@@ -48,10 +39,8 @@ const MENU: { view: View; label: string; icon: LucideIcon }[] = [
 const TITLES: Record<View, string> = {
   root: "Profile",
   profile: "Academic Profile",
-  "import-timetable": "Import Timetable",
-  "import-attendance": "Import Attendance",
   export: "Export Data",
-  backup: "Backup & Restore",
+  backup: "Backup",
   appearance: "Appearance",
   about: "About AttendX",
 };
@@ -264,10 +253,6 @@ function Panels({ view }: { view: Exclude<View, "root"> }) {
   switch (view) {
     case "profile":
       return <ProfilePanel />;
-    case "import-timetable":
-      return <ImportTimetablePanel />;
-    case "import-attendance":
-      return <ImportAttendancePanel />;
     case "export":
       return <ExportPanel />;
     case "backup":
@@ -364,97 +349,6 @@ function ProfilePanel() {
         }}
       >
         <Save className="size-4" /> Save profile
-      </Button>
-    </div>
-  );
-}
-
-function ImportTimetablePanel() {
-  const { timetable, saveTimetable } = useApp();
-  const [slots, setSlots] = useState<ClassSlot[]>(timetable);
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState("");
-
-  return (
-    <div className="space-y-3 px-2 pb-1">
-      <FileDrop
-        busy={busy}
-        busyLabel={status}
-        title="Upload schedule screenshot"
-        hint="PNG or JPG from the CMR ERP timetable page"
-        onFile={async (file) => {
-          setBusy(true);
-          try {
-            const text = await readImageText(file, (stage, pct) => setStatus(`${stage} · ${pct}%`));
-            const parsed = parseSchedule(text);
-            setSlots(parsed.length ? parsed : slots);
-            setStatus(
-              parsed.length ? `Extracted ${parsed.length} classes` : "Nothing detected — edit below",
-            );
-          } catch {
-            setStatus("Could not read that screenshot");
-          } finally {
-            setBusy(false);
-          }
-        }}
-      />
-      <TimetableEditor slots={slots} onChange={setSlots} />
-      <Button
-        className="w-full rounded-2xl"
-        onClick={async () => {
-          await saveTimetable(slots);
-          toast.success("Timetable saved");
-        }}
-      >
-        Save timetable
-      </Button>
-    </div>
-  );
-}
-
-function ImportAttendancePanel() {
-  const { subjects, timetable, saveSubjects } = useApp();
-  const [draft, setDraft] = useState<Subject[]>(subjects);
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState("");
-
-  return (
-    <div className="space-y-3 px-2 pb-1">
-      <FileDrop
-        busy={busy}
-        busyLabel={status}
-        title="Upload attendance screenshot"
-        hint="PNG or JPG from the CMR ERP attendance page"
-        onFile={async (file) => {
-          setBusy(true);
-          try {
-            const text = await readImageText(file, (stage, pct) => setStatus(`${stage} · ${pct}%`));
-            const parsed = parseAttendance(text);
-            const base = draft.length ? draft : subjectsFromTimetable(timetable);
-            const merged = base.map((b) => parsed.find((p) => p.code === b.code) ?? b);
-            const extras = parsed.filter((p) => !merged.some((m) => m.code === p.code));
-            setDraft([...merged, ...extras]);
-            setStatus(
-              parsed.length
-                ? `Extracted ${parsed.length} subjects`
-                : "Nothing detected — edit below",
-            );
-          } catch {
-            setStatus("Could not read that screenshot");
-          } finally {
-            setBusy(false);
-          }
-        }}
-      />
-      <SubjectsEditor subjects={draft} onChange={setDraft} />
-      <Button
-        className="w-full rounded-2xl"
-        onClick={async () => {
-          await saveSubjects(draft);
-          toast.success("Subjects saved");
-        }}
-      >
-        Save subjects
       </Button>
     </div>
   );

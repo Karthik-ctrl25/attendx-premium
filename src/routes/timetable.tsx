@@ -110,7 +110,7 @@ function TimetablePage() {
         <GlassCard className="p-10 text-center">
           <p className="font-display text-lg font-semibold">Nothing scheduled</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Import or edit your timetable anytime from the profile menu.
+            Your timetable loads automatically from your department, semester and section.
           </p>
         </GlassCard>
       )}

@@ -25,6 +25,29 @@ export async function readImageText(file: File, onProgress?: OcrProgress): Promi
   }
 }
 
+/**
+ * Same as `readImageText` but also reports the OCR confidence (0-100) so the
+ * UI can warn when a screenshot was read poorly.
+ */
+export async function readImage(
+  file: File,
+  onProgress?: OcrProgress,
+): Promise<{ text: string; confidence: number }> {
+  const { createWorker } = await import("tesseract.js");
+  const worker = await createWorker("eng", 1, {
+    logger: (m: { status: string; progress: number }) =>
+      onProgress?.(m.status, Math.round((m.progress ?? 0) * 100)),
+  });
+  try {
+    const url = URL.createObjectURL(file);
+    const { data } = await worker.recognize(url);
+    URL.revokeObjectURL(url);
+    return { text: data.text ?? "", confidence: Math.round(data.confidence ?? 0) };
+  } finally {
+    await worker.terminate();
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* helpers                                                             */
 /* ------------------------------------------------------------------ */
