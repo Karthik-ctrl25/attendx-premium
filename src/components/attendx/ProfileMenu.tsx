@@ -67,8 +67,22 @@ export function Avatar({ size = 40, className }: { size?: number; className?: st
   );
 }
 
-export function ProfileMenu() {
-  const [open, setOpen] = useState(false);
+export function ProfileMenu({
+  open: openProp,
+  onOpenChange,
+  hideTrigger,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+} = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (next: boolean | ((v: boolean) => boolean)) => {
+    const value = typeof next === "function" ? next(open) : next;
+    setInternalOpen(value);
+    onOpenChange?.(value);
+  };
   const [view, setView] = useState<View>("root");
   const isMobile = useIsMobile();
   const wrapRef = useRef<HTMLDivElement>(null);
