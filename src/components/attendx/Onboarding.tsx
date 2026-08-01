@@ -91,6 +91,10 @@ export function Onboarding() {
         semester: choice.semester,
         section: choice.section,
         authProvider: "google",
+        role: "student",
+        crRequestStatus: "none",
+        semesterStartedAt: Date.now(),
+        semesterUploadPending: false,
       });
       await completeSetup(details.studentName.trim());
     } finally {
