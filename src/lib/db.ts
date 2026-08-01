@@ -1,9 +1,30 @@
 import { openDB, type IDBPDatabase } from "idb";
 
-import type { AppMeta, AttendanceImport, ClassSlot, HistoryEntry, Subject } from "./types";
+import type {
+  Announcement,
+  AppMeta,
+  AttendanceImport,
+  ClassEvent,
+  ClassResource,
+  ClassSlot,
+  CrRequest,
+  HistoryEntry,
+  Poll,
+  Subject,
+} from "./types";
 
 const DB_NAME = "attendx";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
+
+/** Class-space stores (announcements, polls, …) — one place to extend later. */
+export const CLASS_STORES = [
+  "announcements",
+  "polls",
+  "events",
+  "resources",
+  "crRequests",
+] as const;
+export type ClassStore = (typeof CLASS_STORES)[number];
 
 const DEFAULT_META: AppMeta = {
   setupComplete: false,
@@ -22,6 +43,11 @@ const DEFAULT_META: AppMeta = {
   reminderTime: "19:00",
   lastReminderDate: "",
   lastVerifiedAt: 0,
+  role: "student",
+  crRequestStatus: "none",
+  semesterStartedAt: 0,
+  semesterPromptSnoozedFor: "",
+  semesterUploadPending: false,
 };
 
 
@@ -50,30 +76,61 @@ function getDB() {
         if (!db.objectStoreNames.contains("imports")) {
           db.createObjectStore("imports", { keyPath: "id" });
         }
+        for (const store of CLASS_STORES) {
+          if (!db.objectStoreNames.contains(store)) {
+            db.createObjectStore(store, { keyPath: "id" });
+          }
+        }
       },
     });
   }
   return dbPromise;
 }
 
+
 export const db = {
   async loadAll() {
     const conn = await getDB();
-    const [subjects, timetable, history, meta, imports] = await Promise.all([
-      conn.getAll("subjects") as Promise<Subject[]>,
-      conn.getAll("timetable") as Promise<ClassSlot[]>,
-      conn.getAll("history") as Promise<HistoryEntry[]>,
-      conn.get("meta", "app") as Promise<AppMeta | undefined>,
-      conn.getAll("imports") as Promise<AttendanceImport[]>,
-    ]);
+    const [subjects, timetable, history, meta, imports, announcements, polls, events, resources, crRequests] =
+      await Promise.all([
+        conn.getAll("subjects") as Promise<Subject[]>,
+        conn.getAll("timetable") as Promise<ClassSlot[]>,
+        conn.getAll("history") as Promise<HistoryEntry[]>,
+        conn.get("meta", "app") as Promise<AppMeta | undefined>,
+        conn.getAll("imports") as Promise<AttendanceImport[]>,
+        conn.getAll("announcements") as Promise<Announcement[]>,
+        conn.getAll("polls") as Promise<Poll[]>,
+        conn.getAll("events") as Promise<ClassEvent[]>,
+        conn.getAll("resources") as Promise<ClassResource[]>,
+        conn.getAll("crRequests") as Promise<CrRequest[]>,
+      ]);
     return {
       subjects,
       timetable,
       history: history.sort((a, b) => b.ts - a.ts),
       meta: { ...DEFAULT_META, ...(meta ?? {}) },
       imports: imports.sort((a, b) => b.ts - a.ts),
+      announcements: announcements.sort(
+        (a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.ts - a.ts,
+      ),
+      polls: polls.sort((a, b) => b.ts - a.ts),
+      events: events.sort((a, b) => a.date.localeCompare(b.date)),
+      resources: resources.sort((a, b) => b.ts - a.ts),
+      crRequests: crRequests.sort((a, b) => b.ts - a.ts),
     };
   },
+
+  /** Generic upsert for class-space records. */
+  async putClassRecord<T extends { id: string }>(store: ClassStore, record: T) {
+    const conn = await getDB();
+    await conn.put(store, record);
+  },
+
+  async deleteClassRecord(store: ClassStore, id: string) {
+    const conn = await getDB();
+    await conn.delete(store, id);
+  },
+
 
   async putImport(entry: AttendanceImport) {
     const conn = await getDB();
@@ -126,19 +183,12 @@ export const db = {
 
   async reset() {
     const conn = await getDB();
-    const tx = conn.transaction(
-      ["subjects", "timetable", "history", "meta", "imports"],
-      "readwrite",
-    );
-    await Promise.all([
-      tx.objectStore("subjects").clear(),
-      tx.objectStore("timetable").clear(),
-      tx.objectStore("history").clear(),
-      tx.objectStore("meta").clear(),
-      tx.objectStore("imports").clear(),
-    ]);
+    const stores = ["subjects", "timetable", "history", "meta", "imports", ...CLASS_STORES];
+    const tx = conn.transaction(stores, "readwrite");
+    await Promise.all(stores.map((s) => tx.objectStore(s).clear()));
     await tx.done;
   },
+
 
 };
 

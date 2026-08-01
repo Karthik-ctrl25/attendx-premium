@@ -41,6 +41,71 @@ export interface HistoryEntry {
   undone?: boolean;
 }
 
+import type { Role } from "./roles";
+
+export type ReactionKind = "helpful" | "thanks";
+
+export interface Announcement {
+  id: string;
+  ts: number;
+  title: string;
+  body: string;
+  authorName: string;
+  authorRole: Role;
+  pinned?: boolean;
+  reactions: Record<ReactionKind, number>;
+  /** The current student's reaction (local device). */
+  myReaction?: ReactionKind | null;
+}
+
+export interface PollOption {
+  id: string;
+  label: string;
+  votes: number;
+}
+
+export interface Poll {
+  id: string;
+  ts: number;
+  question: string;
+  options: PollOption[];
+  closed?: boolean;
+  /** Option id this device voted for. */
+  myVote?: string | null;
+}
+
+export type ClassEventKind = "Assignment" | "Seminar" | "Lab Exam" | "IA";
+
+export interface ClassEvent {
+  id: string;
+  kind: ClassEventKind;
+  title: string;
+  /** "YYYY-MM-DD" */
+  date: string;
+  note?: string;
+}
+
+export type ResourceKind = "PDF" | "PPT" | "Link";
+
+export interface ClassResource {
+  id: string;
+  ts: number;
+  kind: ResourceKind;
+  title: string;
+  url: string;
+}
+
+export type CrRequestStatus = "pending" | "approved" | "rejected";
+
+export interface CrRequest {
+  id: string;
+  ts: number;
+  name: string;
+  usn: string;
+  reason: string;
+  status: CrRequestStatus;
+}
+
 export interface AppMeta {
   setupComplete: boolean;
   studentName: string;
@@ -64,7 +129,18 @@ export interface AppMeta {
   lastReminderDate?: string;
   /** Timestamp of the last ERP screenshot verification. */
   lastVerifiedAt?: number;
+  /** Class role. Roles exist in V1 so the model is ready for a real backend. */
+  role?: Role;
+  /** Status of this student's Class Representative application, if any. */
+  crRequestStatus?: CrRequestStatus | "none";
+  /** When the current semester was set (used to offer the next semester). */
+  semesterStartedAt?: number;
+  /** Semester number the student postponed moving to ("Later"). */
+  semesterPromptSnoozedFor?: string;
+  /** Set right after a semester change until the fresh ERP upload is done. */
+  semesterUploadPending?: boolean;
 }
+
 
 
 /** Fingerprint of a saved attendance screenshot import (duplicate guard). */

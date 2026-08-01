@@ -6,11 +6,11 @@ import {
   GraduationCap,
   Home,
   Sparkles,
+  User,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
-import { Avatar, ProfileMenu } from "@/components/attendx/ProfileMenu";
 import { useDailyReminder } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,9 @@ export const NAV: NavItem[] = [
   { to: "/timetable", label: "Timetable", icon: CalendarRange },
   { to: "/attendance", label: "Attendance", icon: CheckCircle2 },
   { to: "/class", label: "Class", icon: GraduationCap },
+  { to: "/profile", label: "Profile", icon: User },
 ];
+
 
 function Brand() {
   return (
@@ -45,8 +47,6 @@ function Brand() {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { meta, timetable, updateMeta } = useApp();
-  const [profileOpen, setProfileOpen] = useState(false);
-
   useDailyReminder(meta, timetable, updateMeta);
 
   useEffect(() => {
@@ -88,11 +88,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="min-w-0 flex-1 pb-28 lg:pb-10">
         <div className="mx-auto w-full max-w-3xl px-4 pt-5 sm:px-6 lg:max-w-5xl lg:px-8">
-          <header className="mb-6 flex items-center justify-between gap-3">
-            <div className="min-w-0 lg:invisible">
-              <Brand />
-            </div>
-            <ProfileMenu open={profileOpen} onOpenChange={setProfileOpen} />
+          <header className="mb-6 lg:hidden">
+            <Brand />
           </header>
           <AnimatePresence mode="wait">
             <motion.div
@@ -139,17 +136,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
           </Link>
         ))}
-        <button
-          type="button"
-          aria-label="Open profile menu"
-          onClick={() => setProfileOpen((v) => !v)}
-          className="relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl px-0.5 py-1.5"
-        >
-          <Avatar size={18} className="shrink-0" />
-          <span className="w-full truncate text-center text-[10px] font-medium text-muted-foreground">
-            Profile
-          </span>
-        </button>
       </nav>
     </div>
   );

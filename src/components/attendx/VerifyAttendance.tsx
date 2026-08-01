@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, Minus, Plus, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, ExternalLink, Minus, Plus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { AttendanceUploader, type ExtractResult } from "@/components/attendx/AttendanceUploader";
 import { GlassCard } from "@/components/attendx/GlassCard";
+import { ERP_LOGIN_URL } from "@/lib/class-store";
 import { Button } from "@/components/ui/button";
 import {
   diffSubjects,
@@ -90,6 +91,23 @@ export function VerifyAttendance({ onDone }: { onDone?: () => void }) {
             </p>
           </div>
         </div>
+        {/* Opens the official ERP in the default browser — never embedded. */}
+        <a
+          href={ERP_LOGIN_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="glass glass-hover flex min-w-0 items-center gap-3 rounded-3xl px-5 py-4"
+        >
+          <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+            <ExternalLink className="size-4 text-muted-foreground" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">Open CMR ERP</p>
+            <p className="truncate text-xs text-muted-foreground">
+              erp.cmr.edu.in · come back here to upload
+            </p>
+          </div>
+        </a>
         <AttendanceUploader
           existing={subjects}
           duplicateCheck={false}
@@ -99,6 +117,7 @@ export function VerifyAttendance({ onDone }: { onDone?: () => void }) {
       </div>
     );
   }
+
 
   return (
     <div className="space-y-5">

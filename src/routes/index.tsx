@@ -3,6 +3,7 @@ import { CalendarRange, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
 
 import { AttendanceRing } from "@/components/attendx/AttendanceRing";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
+import { SemesterCard } from "@/components/attendx/SemesterCard";
 import { Button } from "@/components/ui/button";
 import { classesCanMiss, overallStats } from "@/lib/attendance";
 import { useApp } from "@/lib/store";
@@ -67,6 +68,10 @@ function Dashboard() {
           {meta.studentName ? `, ${meta.studentName.split(" ")[0]}` : ""}
         </h1>
       </header>
+
+      <SemesterCard compact />
+
+
 
       <GlassCard strong className="flex flex-col items-center gap-4 p-6">
         <AttendanceRing value={stats.pct} total={stats.total} size={150} sublabel="Overall" />
