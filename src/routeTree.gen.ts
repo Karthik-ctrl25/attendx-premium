@@ -14,7 +14,6 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as ClassRouteImport } from './routes/class'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as TimetableRouteImport } from './routes/timetable'
-import { Route as TodayRouteImport } from './routes/today'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
 import { Route as AttendanceCodeRouteImport } from './routes/attendance.$code'
@@ -44,11 +43,6 @@ const TimetableRoute = TimetableRouteImport.update({
   path: '/timetable',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TodayRoute = TodayRouteImport.update({
-  id: '/today',
-  path: '/today',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
@@ -71,7 +65,6 @@ export interface FileRoutesByFullPath {
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
   '/timetable': typeof TimetableRoute
-  '/today': typeof TodayRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
   '/attendance/': typeof AttendanceIndexRoute
@@ -82,7 +75,6 @@ export interface FileRoutesByTo {
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
   '/timetable': typeof TimetableRoute
-  '/today': typeof TodayRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
   '/attendance': typeof AttendanceIndexRoute
@@ -94,7 +86,6 @@ export interface FileRoutesById {
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
   '/timetable': typeof TimetableRoute
-  '/today': typeof TodayRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
   '/attendance/': typeof AttendanceIndexRoute
@@ -107,7 +98,6 @@ export interface FileRouteTypes {
     | '/class'
     | '/history'
     | '/timetable'
-    | '/today'
     | '/verify'
     | '/attendance/$code'
     | '/attendance/'
@@ -118,7 +108,6 @@ export interface FileRouteTypes {
     | '/class'
     | '/history'
     | '/timetable'
-    | '/today'
     | '/verify'
     | '/attendance/$code'
     | '/attendance'
@@ -129,7 +118,6 @@ export interface FileRouteTypes {
     | '/class'
     | '/history'
     | '/timetable'
-    | '/today'
     | '/verify'
     | '/attendance/$code'
     | '/attendance/'
@@ -141,7 +129,6 @@ export interface RootRouteChildren {
   ClassRoute: typeof ClassRoute
   HistoryRoute: typeof HistoryRoute
   TimetableRoute: typeof TimetableRoute
-  TodayRoute: typeof TodayRoute
   VerifyRoute: typeof VerifyRoute
   AttendanceCodeRoute: typeof AttendanceCodeRoute
   AttendanceIndexRoute: typeof AttendanceIndexRoute
@@ -184,13 +171,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TimetableRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/today': {
-      id: '/today'
-      path: '/today'
-      fullPath: '/today'
-      preLoaderRoute: typeof TodayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/verify': {
       id: '/verify'
       path: '/verify'
@@ -221,7 +201,6 @@ const rootRouteChildren: RootRouteChildren = {
   ClassRoute: ClassRoute,
   HistoryRoute: HistoryRoute,
   TimetableRoute: TimetableRoute,
-  TodayRoute: TodayRoute,
   VerifyRoute: VerifyRoute,
   AttendanceCodeRoute: AttendanceCodeRoute,
   AttendanceIndexRoute: AttendanceIndexRoute,
@@ -229,3 +208,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
