@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarClock,
   ExternalLink,
-  FileText,
   Heart,
   Link2,
   Megaphone,
@@ -23,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { IMPORTANT_LINKS, useClassSpace } from "@/lib/class-store";
 import { can, type Role } from "@/lib/roles";
 import { useApp } from "@/lib/store";
-import type { ClassEventKind, ResourceKind } from "@/lib/types";
+import type { ClassEventKind } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/class")({
@@ -48,7 +47,6 @@ export const Route = createFileRoute("/class")({
 });
 
 const EVENT_KINDS: ClassEventKind[] = ["Assignment", "Seminar", "Lab Exam", "IA"];
-const RESOURCE_KINDS: ResourceKind[] = ["PDF", "PPT", "Link"];
 
 function Empty({ text }: { text: string }) {
   return (
@@ -116,7 +114,6 @@ function ClassPage() {
       <Polls role={role} />
       <Upcoming role={role} />
       <ImportantLinks />
-      <Resources role={role} />
     </div>
   );
 }
@@ -238,22 +235,26 @@ function Announcements({ role }: { role: Role }) {
   );
 }
 
+const POLL_OPTIONS = ["Yes", "No", "Maybe"] as const;
+
 function Polls({ role }: { role: Role }) {
-  const { polls, addPoll, vote, deletePoll } = useClassSpace();
+  const { polls, addPoll, vote, togglePollPin, deletePoll } = useClassSpace();
   const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState("Yes\nNo");
+  const [withMaybe, setWithMaybe] = useState(false);
+
+  const options = withMaybe ? [...POLL_OPTIONS] : ["Yes", "No"];
 
   return (
     <section className="space-y-3">
-      <SectionTitle title="🗳 Polls" subtitle="One vote per student" />
+      <SectionTitle title="🗳 Polls" subtitle="Yes / No / Maybe · one vote per student" />
       {can(role, "poll.create") ? (
         <Composer
           label="New poll"
-          disabled={!question.trim() || options.split("\n").filter((o) => o.trim()).length < 2}
+          disabled={!question.trim()}
           onSubmit={() => {
-            void addPoll({ question, options: options.split("\n") });
+            void addPoll({ question, options });
             setQuestion("");
-            setOptions("Yes\nNo");
+            setWithMaybe(false);
             toast.success("Poll created");
           }}
         >
@@ -263,13 +264,29 @@ function Polls({ role }: { role: Role }) {
             onChange={(e) => setQuestion(e.target.value)}
             className="rounded-2xl border-white/70 bg-white/80"
           />
-          <Textarea
-            rows={3}
-            value={options}
-            onChange={(e) => setOptions(e.target.value)}
-            placeholder="One option per line"
-            className="rounded-2xl border-white/70 bg-white/80"
-          />
+          <div className="flex flex-wrap items-center gap-1.5">
+            {options.map((o) => (
+              <span
+                key={o}
+                className="rounded-full bg-white/60 px-3 py-1.5 text-xs font-medium text-muted-foreground"
+              >
+                {o}
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={() => setWithMaybe((m) => !m)}
+              className={cn(
+                "ml-auto rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                withMaybe ? "bg-ink text-ink-foreground" : "bg-white/60 text-muted-foreground",
+              )}
+            >
+              {withMaybe ? "Remove Maybe" : "Add Maybe"}
+            </button>
+          </div>
+          <p className="px-1 text-[11px] text-muted-foreground">
+            Options are fixed and polls can't be edited once published.
+          </p>
         </Composer>
       ) : null}
 
@@ -278,12 +295,30 @@ function Polls({ role }: { role: Role }) {
           {polls.map((p) => {
             const total = p.options.reduce((sum, o) => sum + o.votes, 0);
             return (
-              <GlassCard key={p.id} className="p-5">
+              <GlassCard
+                key={p.id}
+                className={cn("p-5", p.pinned && "ring-1 ring-foreground/10")}
+              >
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
                     <Vote className="size-4 text-muted-foreground" />
                   </span>
-                  <p className="min-w-0 flex-1 break-words text-sm font-semibold">{p.question}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-sm font-semibold">{p.question}</p>
+                    {p.pinned ? (
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">Pinned</p>
+                    ) : null}
+                  </div>
+                  {can(role, "poll.pin") ? (
+                    <button
+                      type="button"
+                      onClick={() => void togglePollPin(p.id)}
+                      className="grid size-8 shrink-0 place-items-center rounded-full bg-white/60 text-muted-foreground hover:text-foreground"
+                      aria-label="Pin poll"
+                    >
+                      <Pin className="size-3.5" />
+                    </button>
+                  ) : null}
                   {can(role, "poll.delete") ? (
                     <button
                       type="button"
@@ -331,7 +366,7 @@ function Polls({ role }: { role: Role }) {
           })}
         </div>
       ) : (
-        <Empty text="No polls right now." />
+        <Empty text="No polls available." />
       )}
     </section>
   );
@@ -412,7 +447,7 @@ function Upcoming({ role }: { role: Role }) {
           ))}
         </GlassCard>
       ) : (
-        <Empty text="Nothing scheduled yet." />
+        <Empty text="No upcoming events." />
       )}
     </section>
   );
@@ -420,7 +455,7 @@ function Upcoming({ role }: { role: Role }) {
 
 function ImportantLinks() {
   return (
-    <section className="space-y-3">
+    <section className="space-y-3 pb-2">
       <SectionTitle title="📌 Important links" subtitle="Opens in your browser" />
       <GlassCard className="divide-y divide-foreground/5 p-2">
         {IMPORTANT_LINKS.map((l) => (
@@ -437,90 +472,6 @@ function ImportantLinks() {
           </a>
         ))}
       </GlassCard>
-    </section>
-  );
-}
-
-function Resources({ role }: { role: Role }) {
-  const { resources, addResource, deleteResource } = useClassSpace();
-  const [kind, setKind] = useState<ResourceKind>("PDF");
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-
-  return (
-    <section className="space-y-3 pb-2">
-      <SectionTitle title="📂 Shared resources" subtitle="PDF, PPT and links only" />
-      {can(role, "resource.manage") ? (
-        <Composer
-          label="Add resource"
-          disabled={!title.trim() || !/^https?:\/\//.test(url.trim())}
-          onSubmit={() => {
-            void addResource({ kind, title, url: url.trim() });
-            setTitle("");
-            setUrl("");
-            toast.success("Resource added");
-          }}
-        >
-          <div className="flex flex-wrap gap-1.5">
-            {RESOURCE_KINDS.map((k) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => setKind(k)}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-medium",
-                  kind === k ? "bg-ink text-ink-foreground" : "bg-white/60 text-muted-foreground",
-                )}
-              >
-                {k}
-              </button>
-            ))}
-          </div>
-          <Input
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="rounded-2xl border-white/70 bg-white/80"
-          />
-          <Input
-            placeholder="https://…"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="rounded-2xl border-white/70 bg-white/80"
-          />
-        </Composer>
-      ) : null}
-
-      {resources.length ? (
-        <GlassCard className="divide-y divide-foreground/5 p-2">
-          {resources.map((r) => (
-            <div key={r.id} className="flex min-w-0 items-center gap-3 px-3 py-3">
-              <FileText className="size-4 shrink-0 text-muted-foreground" />
-              <a
-                href={r.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="min-w-0 flex-1 truncate text-sm font-semibold"
-              >
-                {r.title}
-                <span className="ml-2 text-xs font-normal text-muted-foreground">{r.kind}</span>
-              </a>
-              {can(role, "resource.manage") ? (
-                <button
-                  type="button"
-                  onClick={() => void deleteResource(r.id)}
-                  className="grid size-8 shrink-0 place-items-center rounded-full bg-white/60 text-muted-foreground hover:text-bad"
-                  aria-label="Delete resource"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              ) : null}
-            </div>
-          ))}
-        </GlassCard>
-      ) : (
-        <Empty text="No shared resources yet." />
-      )}
     </section>
   );
 }
