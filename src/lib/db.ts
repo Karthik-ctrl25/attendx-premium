@@ -1,9 +1,30 @@
 import { openDB, type IDBPDatabase } from "idb";
 
-import type { AppMeta, AttendanceImport, ClassSlot, HistoryEntry, Subject } from "./types";
+import type {
+  Announcement,
+  AppMeta,
+  AttendanceImport,
+  ClassEvent,
+  ClassResource,
+  ClassSlot,
+  CrRequest,
+  HistoryEntry,
+  Poll,
+  Subject,
+} from "./types";
 
 const DB_NAME = "attendx";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
+
+/** Class-space stores (announcements, polls, …) — one place to extend later. */
+export const CLASS_STORES = [
+  "announcements",
+  "polls",
+  "events",
+  "resources",
+  "crRequests",
+] as const;
+export type ClassStore = (typeof CLASS_STORES)[number];
 
 const DEFAULT_META: AppMeta = {
   setupComplete: false,
@@ -22,6 +43,11 @@ const DEFAULT_META: AppMeta = {
   reminderTime: "19:00",
   lastReminderDate: "",
   lastVerifiedAt: 0,
+  role: "student",
+  crRequestStatus: "none",
+  semesterStartedAt: 0,
+  semesterPromptSnoozedFor: "",
+  semesterUploadPending: false,
 };
 
 
@@ -50,11 +76,17 @@ function getDB() {
         if (!db.objectStoreNames.contains("imports")) {
           db.createObjectStore("imports", { keyPath: "id" });
         }
+        for (const store of CLASS_STORES) {
+          if (!db.objectStoreNames.contains(store)) {
+            db.createObjectStore(store, { keyPath: "id" });
+          }
+        }
       },
     });
   }
   return dbPromise;
 }
+
 
 export const db = {
   async loadAll() {
