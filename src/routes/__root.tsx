@@ -145,12 +145,15 @@ function SetupGate() {
   if (!meta.setupComplete) return <Onboarding />;
 
   return (
-    <AppShell>
-      {/* Required: nested routes render here. */}
-      <Outlet />
-    </AppShell>
+    <ClassSpaceProvider>
+      <AppShell>
+        {/* Required: nested routes render here. */}
+        <Outlet />
+      </AppShell>
+    </ClassSpaceProvider>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
