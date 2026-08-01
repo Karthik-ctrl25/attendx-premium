@@ -338,9 +338,6 @@ export function useClassSpace() {
 /** Static, admin-editable later. Opened in the default browser, never embedded. */
 export const IMPORTANT_LINKS = [
   { label: "ERP Login", url: "https://erp.cmr.edu.in/login.htm" },
-  { label: "Library", url: "https://www.cmr.edu.in/library/" },
-  { label: "Google Classroom", url: "https://classroom.google.com/" },
-  { label: "Placement Portal", url: "https://www.cmr.edu.in/placements/" },
   { label: "Department Website", url: "https://www.cmr.edu.in/" },
 ] as const;
 
