@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { ClassSpaceProvider } from "../lib/class-store";
 import { AppDataProvider, useApp } from "../lib/store";
 import { AppShell } from "../components/attendx/AppShell";
 import { Onboarding } from "../components/attendx/Onboarding";
