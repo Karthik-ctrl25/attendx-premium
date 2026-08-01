@@ -67,8 +67,22 @@ export function Avatar({ size = 40, className }: { size?: number; className?: st
   );
 }
 
-export function ProfileMenu() {
-  const [open, setOpen] = useState(false);
+export function ProfileMenu({
+  open: openProp,
+  onOpenChange,
+  hideTrigger,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+} = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (next: boolean | ((v: boolean) => boolean)) => {
+    const value = typeof next === "function" ? next(open) : next;
+    setInternalOpen(value);
+    onOpenChange?.(value);
+  };
   const [view, setView] = useState<View>("root");
   const isMobile = useIsMobile();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -112,15 +126,17 @@ export function ProfileMenu() {
 
   return (
     <div ref={wrapRef} className="relative">
-      <button
-        type="button"
-        aria-label="Open profile menu"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="rounded-full p-0.5 shadow-soft ring-1 ring-white/70 transition-transform duration-300 hover:scale-105 active:scale-95"
-      >
-        <Avatar size={36} />
-      </button>
+      {hideTrigger ? null : (
+        <button
+          type="button"
+          aria-label="Open profile menu"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="rounded-full p-0.5 shadow-soft ring-1 ring-white/70 transition-transform duration-300 hover:scale-105 active:scale-95"
+        >
+          <Avatar size={36} />
+        </button>
+      )}
 
       <AnimatePresence>
         {open ? (
