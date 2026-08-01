@@ -183,19 +183,12 @@ export const db = {
 
   async reset() {
     const conn = await getDB();
-    const tx = conn.transaction(
-      ["subjects", "timetable", "history", "meta", "imports"],
-      "readwrite",
-    );
-    await Promise.all([
-      tx.objectStore("subjects").clear(),
-      tx.objectStore("timetable").clear(),
-      tx.objectStore("history").clear(),
-      tx.objectStore("meta").clear(),
-      tx.objectStore("imports").clear(),
-    ]);
+    const stores = ["subjects", "timetable", "history", "meta", "imports", ...CLASS_STORES];
+    const tx = conn.transaction(stores, "readwrite");
+    await Promise.all(stores.map((s) => tx.objectStore(s).clear()));
     await tx.done;
   },
+
 
 };
 
