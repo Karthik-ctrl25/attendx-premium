@@ -3,6 +3,7 @@ import { CalendarRange, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
 
 import { AttendanceRing } from "@/components/attendx/AttendanceRing";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
+import { SemesterCard } from "@/components/attendx/SemesterCard";
 import { Button } from "@/components/ui/button";
 import { classesCanMiss, overallStats } from "@/lib/attendance";
 import { useApp } from "@/lib/store";
