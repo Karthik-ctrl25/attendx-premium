@@ -129,7 +129,18 @@ export interface AppMeta {
   lastReminderDate?: string;
   /** Timestamp of the last ERP screenshot verification. */
   lastVerifiedAt?: number;
+  /** Class role. Roles exist in V1 so the model is ready for a real backend. */
+  role?: Role;
+  /** Status of this student's Class Representative application, if any. */
+  crRequestStatus?: CrRequestStatus | "none";
+  /** When the current semester was set (used to offer the next semester). */
+  semesterStartedAt?: number;
+  /** Semester number the student postponed moving to ("Later"). */
+  semesterPromptSnoozedFor?: string;
+  /** Set right after a semester change until the fresh ERP upload is done. */
+  semesterUploadPending?: boolean;
 }
+
 
 
 /** Fingerprint of a saved attendance screenshot import (duplicate guard). */
