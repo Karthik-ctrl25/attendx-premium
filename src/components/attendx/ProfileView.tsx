@@ -7,6 +7,7 @@ import {
   Save,
   ShieldQuestion,
   Sun,
+  TriangleAlert,
   Upload,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -80,7 +81,10 @@ export function ProfileView() {
         </GlassCard>
       </section>
 
-      <ResetRow />
+      <section className="pb-2">
+        <SectionTitle title="Danger zone" subtitle="Irreversible, this device only" />
+        <DangerZone />
+      </section>
     </div>
   );
 }
@@ -362,18 +366,79 @@ function RemindersCard() {
   );
 }
 
-function ResetRow() {
+/** The only place data can be destroyed — collapsed, and typed-confirmation gated. */
+function DangerZone() {
   const { resetApp } = useApp();
+  const [open, setOpen] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="glass glass-hover flex w-full min-w-0 items-center gap-3 rounded-3xl px-5 py-4 text-left"
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+          <TriangleAlert className="size-4 text-bad" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-bad">Reset all data</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            Remove everything stored on this device
+          </span>
+        </span>
+      </button>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={async () => {
-        await resetApp();
-        toast("AttendX reset");
-      }}
-      className="glass glass-hover w-full rounded-3xl px-5 py-4 text-left text-sm font-semibold text-bad"
-    >
-      Reset AttendX
-    </button>
+    <GlassCard className="space-y-3 p-5 ring-1 ring-bad/30">
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+          <TriangleAlert className="size-4 text-bad" />
+        </span>
+        <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+          This will permanently remove all attendance, timetable and profile data stored on this
+          device.
+        </p>
+      </div>
+      <Input
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value.toUpperCase())}
+        placeholder="Type RESET to confirm"
+        aria-label="Type RESET to confirm"
+        className="rounded-2xl border-white/70 bg-white/80"
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant="destructive"
+          className="rounded-2xl"
+          disabled={confirm !== "RESET" || busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              await resetApp();
+              toast("All data removed");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          Reset all data
+        </Button>
+        <Button
+          variant="secondary"
+          className="rounded-2xl"
+          onClick={() => {
+            setOpen(false);
+            setConfirm("");
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
+    </GlassCard>
   );
 }

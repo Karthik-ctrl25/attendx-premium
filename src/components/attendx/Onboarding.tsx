@@ -15,6 +15,7 @@ import {
   detailsReady,
   type StudentDetails,
 } from "@/components/attendx/DetailsStep";
+import { ErpShortcut } from "@/components/attendx/ErpShortcut";
 import { TutorialVideo } from "@/components/attendx/TutorialVideo";
 import { getTimetableFor } from "@/lib/timetable-dataset";
 import { useApp } from "@/lib/store";
@@ -153,6 +154,7 @@ export function Onboarding() {
                       ERP → Attendance → screenshot. Everything stays on your device.
                     </p>
                   </div>
+                  <ErpShortcut />
                   <AttendanceUploader
                     existing={subjects}
                     onResult={(result) => {

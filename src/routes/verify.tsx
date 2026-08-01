@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { AppShell } from "@/components/attendx/AppShell";
 import { VerifyAttendance } from "@/components/attendx/VerifyAttendance";
 
 export const Route = createFileRoute("/verify")({
@@ -27,10 +26,8 @@ export const Route = createFileRoute("/verify")({
 function VerifyPage() {
   const navigate = useNavigate();
   return (
-    <AppShell>
-      <div className="mx-auto w-full max-w-2xl">
-        <VerifyAttendance onDone={() => navigate({ to: "/" })} />
-      </div>
-    </AppShell>
+    <div className="mx-auto w-full min-w-0 max-w-2xl pb-2">
+      <VerifyAttendance onDone={() => navigate({ to: "/" })} />
+    </div>
   );
 }
