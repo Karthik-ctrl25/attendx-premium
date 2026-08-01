@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, Minus, Plus, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, ExternalLink, Minus, Plus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { AttendanceUploader, type ExtractResult } from "@/components/attendx/AttendanceUploader";
 import { GlassCard } from "@/components/attendx/GlassCard";
+import { ERP_LOGIN_URL } from "@/lib/class-store";
 import { Button } from "@/components/ui/button";
 import {
   diffSubjects,
