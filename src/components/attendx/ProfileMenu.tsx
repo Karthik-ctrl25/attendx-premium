@@ -126,15 +126,17 @@ export function ProfileMenu({
 
   return (
     <div ref={wrapRef} className="relative">
-      <button
-        type="button"
-        aria-label="Open profile menu"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="rounded-full p-0.5 shadow-soft ring-1 ring-white/70 transition-transform duration-300 hover:scale-105 active:scale-95"
-      >
-        <Avatar size={36} />
-      </button>
+      {hideTrigger ? null : (
+        <button
+          type="button"
+          aria-label="Open profile menu"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="rounded-full p-0.5 shadow-soft ring-1 ring-white/70 transition-transform duration-300 hover:scale-105 active:scale-95"
+        >
+          <Avatar size={36} />
+        </button>
+      )}
 
       <AnimatePresence>
         {open ? (
