@@ -45,6 +45,7 @@ interface ClassState {
   deleteAnnouncement: (id: string) => Promise<void>;
   addPoll: (input: { question: string; options: string[] }) => Promise<void>;
   vote: (pollId: string, optionId: string) => Promise<void>;
+  togglePollPin: (id: string) => Promise<void>;
   deletePoll: (id: string) => Promise<void>;
   addEvent: (input: { kind: ClassEventKind; title: string; date: string; note?: string }) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
@@ -72,7 +73,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       .then((data) => {
         if (cancelled) return;
         setAnnouncements(data.announcements);
-        setPolls(data.polls);
+        setPolls(sortPolls(data.polls));
         setEvents(data.events);
         setResources(data.resources);
         setCrRequests(data.crRequests);
@@ -82,6 +83,9 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  const sortPolls = (list: Poll[]) =>
+    [...list].sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.ts - a.ts);
 
   const sortAnnouncements = (list: Announcement[]) =>
     [...list].sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.ts - a.ts);
@@ -157,7 +161,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
         myVote: null,
       };
       if (entry.options.length < 2) return;
-      setPolls((prev) => [entry, ...prev]);
+      setPolls((prev) => sortPolls([entry, ...prev]));
       await db.putClassRecord("polls", entry);
     },
     [role],
@@ -175,7 +179,19 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
           o.id === optionId ? { ...o, votes: o.votes + 1 } : o,
         ),
       };
-      setPolls((prev) => prev.map((p) => (p.id === pollId ? next : p)));
+      setPolls((prev) => sortPolls(prev.map((p) => (p.id === pollId ? next : p))));
+      await db.putClassRecord("polls", next);
+    },
+    [polls, role],
+  );
+
+  const togglePollPin = useCallback(
+    async (id: string) => {
+      assertCan(role, "poll.pin");
+      const current = polls.find((p) => p.id === id);
+      if (!current) return;
+      const next: Poll = { ...current, pinned: !current.pinned };
+      setPolls((prev) => sortPolls(prev.map((p) => (p.id === id ? next : p))));
       await db.putClassRecord("polls", next);
     },
     [polls, role],
@@ -278,6 +294,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       deleteAnnouncement,
       addPoll,
       vote,
+      togglePollPin,
       deletePoll,
       addEvent,
       deleteEvent,
@@ -298,6 +315,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       deleteAnnouncement,
       addPoll,
       vote,
+      togglePollPin,
       deletePoll,
       addEvent,
       deleteEvent,
