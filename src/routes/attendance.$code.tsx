@@ -49,9 +49,10 @@ function SubjectDetail() {
 
   const pct = percent(subject.present, subject.total);
   const entries = history.filter((h) => h.code === code);
+  const safe = classesCanMiss(subject.present, subject.total, 75);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6 pb-2">
       <Link
         to="/attendance"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -67,17 +68,27 @@ function SubjectDetail() {
         <p className="mt-1 text-sm text-muted-foreground">{subject.faculty || "Faculty not set"}</p>
       </header>
 
-      <GlassCard strong className="flex flex-wrap items-center gap-8 p-7">
-        <AttendanceRing value={pct} total={subject.total} size={148} sublabel={subject.code} />
-        <div className="grid flex-1 grid-cols-3 gap-3 text-center">
+      <GlassCard
+        strong
+        className="flex min-w-0 flex-col items-center gap-6 p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-7"
+      >
+        <AttendanceRing
+          value={pct}
+          total={subject.total}
+          size={148}
+          sublabel={subject.code}
+          className="shrink-0"
+        />
+        <div className="grid w-full min-w-0 flex-1 grid-cols-2 gap-2.5 text-center sm:grid-cols-2">
           {[
             { label: "Present", value: subject.present },
             { label: "Absent", value: subject.absent },
             { label: "Total", value: subject.total },
+            { label: "Safe bunks", value: safe },
           ].map((x) => (
-            <div key={x.label} className="rounded-2xl bg-white/60 py-4">
-              <p className="tnum font-display text-2xl font-semibold">{x.value}</p>
-              <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            <div key={x.label} className="min-w-0 rounded-2xl bg-white/60 py-3.5">
+              <p className="tnum font-display text-xl font-semibold leading-none">{x.value}</p>
+              <p className="mt-1.5 truncate text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
                 {x.label}
               </p>
             </div>
@@ -85,9 +96,9 @@ function SubjectDetail() {
         </div>
       </GlassCard>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         <Button
-          className="rounded-2xl"
+          className="h-11 w-full rounded-2xl"
           onClick={async () => {
             await mark(subject.code, "present");
             toast.success("Marked present");
@@ -97,7 +108,7 @@ function SubjectDetail() {
         </Button>
         <Button
           variant="destructive"
-          className="rounded-2xl"
+          className="h-11 w-full rounded-2xl"
           onClick={async () => {
             await mark(subject.code, "absent");
             toast("Marked absent");
@@ -105,12 +116,12 @@ function SubjectDetail() {
         >
           <X className="size-4" /> Absent
         </Button>
-        <Button variant="secondary" className="rounded-2xl" onClick={() => setEditing((e) => !e)}>
+        <Button variant="secondary" className="h-11 w-full rounded-2xl" onClick={() => setEditing((e) => !e)}>
           <Pencil className="size-4" /> Edit
         </Button>
         <Button
           variant="secondary"
-          className="rounded-2xl"
+          className="h-11 w-full rounded-2xl"
           onClick={async () => {
             await resetSubject(subject.code);
             toast("Subject reset");
@@ -120,7 +131,7 @@ function SubjectDetail() {
         </Button>
         <Button
           variant="ghost"
-          className="rounded-2xl text-muted-foreground hover:text-bad"
+          className="h-11 w-full rounded-2xl text-muted-foreground hover:text-bad"
           onClick={async () => {
             await removeSubject(subject.code);
             toast("Subject deleted");
@@ -170,12 +181,12 @@ function SubjectDetail() {
 
       <section>
         <SectionTitle title="Targets" subtitle="Consecutive classes, assuming no other changes" />
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {THRESHOLDS.map((t) => {
             const need = classesNeeded(subject.present, subject.total, t);
             const miss = classesCanMiss(subject.present, subject.total, t);
             return (
-              <GlassCard key={t} className="p-5">
+              <GlassCard key={t} className="min-w-0 p-4 sm:p-5">
                 <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   {t}% target
                 </p>
@@ -192,9 +203,9 @@ function SubjectDetail() {
       </section>
 
       <section>
-        <SectionTitle title="History" subtitle={`${entries.length} entries`} />
+        <SectionTitle title="Recent attendance" subtitle={`${entries.length} entries`} />
         <GlassCard className="divide-y divide-white/60 p-2">
-          {entries.map((h) => (
+          {entries.slice(0, 30).map((h) => (
             <div key={h.id} className="flex items-center gap-3 px-4 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium capitalize">{h.action}</p>
