@@ -68,6 +68,10 @@ function Dashboard() {
         </h1>
       </header>
 
+      <SemesterCard compact />
+
+
+
       <GlassCard strong className="flex flex-col items-center gap-4 p-6">
         <AttendanceRing value={stats.pct} total={stats.total} size={150} sublabel="Overall" />
         <div className="grid w-full grid-cols-3 gap-2 text-center">
