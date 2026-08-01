@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 
+import { NotificationBell } from "@/components/attendx/NotificationBell";
 import { useDailyReminder } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -91,8 +92,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="min-w-0 flex-1 pb-28 lg:pb-10">
         <div className="mx-auto w-full max-w-3xl px-4 pt-5 sm:px-6 lg:max-w-5xl lg:px-8">
-          <header className="mb-6 lg:hidden">
+          <header className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 lg:hidden">
             <Brand />
+            <NotificationBell />
           </header>
           <AnimatePresence mode="wait">
             <motion.div
