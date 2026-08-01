@@ -90,8 +90,8 @@ export function buildNotifications(input: {
     list.push({
       id: `ann-${a.id}`,
       kind: "announcement",
-      title: a.pinned ? `📌 ${a.title}` : a.title,
-      body: `Announcement from ${a.authorName}`,
+      title: a.title,
+      body: `${a.pinned ? "Pinned · " : ""}Announcement from ${a.authorName}`,
       ts: a.ts,
       to: "/class",
     });
