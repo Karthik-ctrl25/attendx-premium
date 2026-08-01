@@ -6,11 +6,11 @@ import {
   GraduationCap,
   Home,
   Sparkles,
+  User,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
-import { Avatar, ProfileMenu } from "@/components/attendx/ProfileMenu";
 import { useDailyReminder } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,9 @@ export const NAV: NavItem[] = [
   { to: "/timetable", label: "Timetable", icon: CalendarRange },
   { to: "/attendance", label: "Attendance", icon: CheckCircle2 },
   { to: "/class", label: "Class", icon: GraduationCap },
+  { to: "/profile", label: "Profile", icon: User },
 ];
+
 
 function Brand() {
   return (
