@@ -70,6 +70,8 @@ export interface Poll {
   question: string;
   options: PollOption[];
   closed?: boolean;
+  /** CR/Admin can pin an important poll to the top. */
+  pinned?: boolean;
   /** Option id this device voted for. */
   myVote?: string | null;
 }
@@ -139,6 +141,8 @@ export interface AppMeta {
   semesterPromptSnoozedFor?: string;
   /** Set right after a semester change until the fresh ERP upload is done. */
   semesterUploadPending?: boolean;
+  /** Everything in the notification centre older than this is read. */
+  notificationsSeenAt?: number;
 }
 
 

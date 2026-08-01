@@ -16,6 +16,7 @@ export type Permission =
   | "announcement.delete"
   | "poll.vote"
   | "poll.create"
+  | "poll.pin"
   | "poll.edit"
   | "poll.delete"
   | "event.manage"
@@ -30,6 +31,7 @@ const STUDENT: Permission[] = [
   "announcement.read",
   "announcement.react",
   "poll.vote",
+  "poll.create",
   "cr.apply",
 ];
 
@@ -38,6 +40,7 @@ const CR: Permission[] = [
   "announcement.create",
   "announcement.pin",
   "poll.create",
+  "poll.pin",
   "event.manage",
   "resource.manage",
 ];
@@ -50,6 +53,7 @@ const ADMIN: Permission[] = [
   "announcement.delete",
   "poll.vote",
   "poll.create",
+  "poll.pin",
   "poll.edit",
   "poll.delete",
   "event.manage",

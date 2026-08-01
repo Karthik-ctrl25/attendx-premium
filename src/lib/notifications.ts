@@ -6,8 +6,7 @@
  * single timestamp on AppMeta (`notificationsSeenAt`).
  */
 import type { Announcement, AppMeta, ClassEvent, ClassSlot, Poll } from "./types";
-import { needsWeeklyVerification } from "./attendance-import";
-import { shouldOfferNextSemester } from "./semester";
+import { pendingSemester, SEMESTER_LENGTH_DAYS } from "./semester";
 import { todayKey } from "./reminders";
 
 export type NotificationKind =
@@ -61,7 +60,7 @@ export function buildNotifications(input: {
   }
 
   // Weekly ERP verification.
-  if (needsWeeklyVerification(meta.lastVerifiedAt)) {
+  if (!meta.lastVerifiedAt || now - meta.lastVerifiedAt >= 7 * DAY) {
     list.push({
       id: `verify-${Math.floor(now / DAY)}`,
       kind: "verify",
@@ -75,13 +74,14 @@ export function buildNotifications(input: {
   }
 
   // Semester rollover.
-  if (shouldOfferNextSemester(meta)) {
+  const nextSem = pendingSemester(meta, now);
+  if (nextSem) {
     list.push({
       id: `semester-${meta.semester ?? "x"}`,
       kind: "semester",
-      title: "A new semester may have started",
-      body: "Confirm your semester to load the right timetable.",
-      ts: (meta.semesterStartedAt ?? now) + 150 * DAY,
+      title: "A new semester has started",
+      body: `Are you now in Semester ${nextSem}? Confirm to load the right timetable.`,
+      ts: (meta.semesterStartedAt ?? now) + SEMESTER_LENGTH_DAYS * DAY,
       to: "/profile",
     });
   }
