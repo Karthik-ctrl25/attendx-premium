@@ -3,222 +3,125 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import {
+  Bell,
+  ChevronRight,
+  ExternalLink,
+  GraduationCap,
   Info,
   LogOut,
   Moon,
+  Palette,
   ShieldCheck,
-  ShieldQuestion,
   Sun,
   TriangleAlert,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/attendx/Avatar";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
-import { SemesterCard } from "@/components/attendx/SemesterCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/auth.functions";
-import { useClassSpace } from "@/lib/class-store";
+import { IMPORTANT_LINKS } from "@/lib/class-store";
 import { DEFAULT_REMINDER_TIME, requestNotificationPermission } from "@/lib/reminders";
 import { ROLE_LABEL, type Role } from "@/lib/roles";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-function InfoRow({ label, value }: { label: string; value?: string }) {
+/* ------------------------------------------------------------------ */
+/* Shared building blocks                                              */
+/* ------------------------------------------------------------------ */
+
+export function InfoRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-[7px]">
+    <div className="flex items-center justify-between gap-4 py-[9px]">
       <span className="text-[12.5px] text-muted-foreground">{label}</span>
       <span className="min-w-0 truncate text-[12.5px] font-medium">{value || "—"}</span>
     </div>
   );
 }
 
-export function ProfileView() {
-  const { meta } = useApp();
-
+export function SubPage({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="mx-auto w-full min-w-0 max-w-[700px] space-y-3 pb-2">
-      <header>
-        <h1 className="font-display text-xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-[11px] text-muted-foreground">{meta.university}</p>
+    <div className="mx-auto w-full min-w-0 max-w-[700px] space-y-4 pb-4">
+      <header className="space-y-1">
+        <Link
+          to="/profile"
+          className="inline-flex items-center gap-1 text-[12px] text-muted-foreground"
+        >
+          <ChevronRight className="size-3.5 rotate-180" /> Profile
+        </Link>
+        <h1 className="font-display text-xl font-semibold tracking-tight">{title}</h1>
+        {subtitle ? <p className="text-[11.5px] text-muted-foreground">{subtitle}</p> : null}
       </header>
-
-      <IdentityCard />
-
-      <section>
-        <SectionTitle title="Academic information" />
-        <AcademicDetailsCard />
-      </section>
-
-      <SemesterCard />
-
-      <AccountCard />
-
-
-      <section>
-        <SectionTitle title="Preferences" />
-        <ThemeCard />
-      </section>
-
-      <section>
-        <SectionTitle title="Notifications" />
-        <RemindersCard />
-      </section>
-
-      <section>
-        <SectionTitle title="About" />
-        <GlassCard className="flex min-w-0 items-center gap-2.5 px-3 py-2.5">
-          <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
-            <Info className="size-3.5 text-muted-foreground" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] font-semibold">AttendX · Version 1.0</p>
-            <p className="truncate text-[11px] text-muted-foreground">
-              Private, offline attendance for CMR University.
-            </p>
-          </div>
-        </GlassCard>
-      </section>
-
-      <section className="pb-2">
-        <SectionTitle title="Danger zone" />
-        <DangerZone />
-      </section>
+      {children}
     </div>
   );
 }
 
-/** Profile is captured during onboarding and is read-only afterwards. */
-function IdentityCard() {
-  const { meta } = useApp();
-  const role: Role = meta.role ?? "student";
-
-  return (
-    <GlassCard strong className="px-3 py-2.5">
-      <div className="flex items-center gap-2.5">
-        <Avatar size={44} className="shrink-0 ring-1 ring-white/70" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-[15px] font-semibold leading-tight tracking-tight">
-            {meta.studentName || "Student"}
-          </p>
-          <p className="truncate text-[11.5px] text-muted-foreground">
-            {meta.department || "Dept"} • Semester {meta.semester || "—"} • Section{" "}
-            {meta.section || "—"}
-          </p>
-        </div>
-        <span className="shrink-0 rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-medium text-primary shadow-soft">
-          {ROLE_LABEL[role]}
+function MenuRow({
+  icon: Icon,
+  label,
+  hint,
+  to,
+  onClick,
+  danger,
+}: {
+  icon: LucideIcon;
+  label: string;
+  hint?: string;
+  to?: string;
+  onClick?: () => void;
+  danger?: boolean;
+}) {
+  const body = (
+    <>
+      <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+        <Icon className={cn("size-4", danger ? "text-bad" : "text-muted-foreground")} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className={cn("block truncate text-[13.5px] font-medium", danger && "text-bad")}>
+          {label}
         </span>
-      </div>
-      {role === "student" ? (
-        <div className="mt-2 border-t border-foreground/5 pt-2">
-          <CrCard />
-        </div>
+      </span>
+      {hint ? (
+        <span className="shrink-0 truncate text-[11.5px] text-muted-foreground">{hint}</span>
       ) : null}
-    </GlassCard>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground/70" />
+    </>
   );
-}
 
-function AcademicDetailsCard() {
-  const { meta } = useApp();
-  const joined = meta.createdAt
-    ? new Date(meta.createdAt).toLocaleDateString(undefined, {
-        month: "short",
-        year: "numeric",
-      })
-    : "—";
-
-  const rows = [
-    { label: "USN", value: meta.usn },
-    { label: "Email", value: meta.email },
-    { label: "Department", value: meta.department },
-    { label: "Semester", value: meta.semester },
-    { label: "Section", value: meta.section },
-    { label: "Joined", value: joined },
-  ];
-
+  const className = "flex w-full min-w-0 items-center gap-3 py-3 text-left";
+  if (to) {
+    return (
+      <Link to={to} className={className}>
+        {body}
+      </Link>
+    );
+  }
   return (
-    <GlassCard className="px-3 py-1">
-      <div className="divide-y divide-foreground/5">
-        {rows.map((r) => (
-          <InfoRow key={r.label} label={r.label} value={r.value} />
-        ))}
-      </div>
-    </GlassCard>
+    <button type="button" onClick={onClick} className={className}>
+      {body}
+    </button>
   );
 }
 
-/** Inline CR row rendered inside the identity card. */
-function CrCard() {
-  const { meta } = useApp();
-  const { applyForCr } = useClassSpace();
-  const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState("");
-  const status = meta.crRequestStatus ?? "none";
+/* ------------------------------------------------------------------ */
+/* Profile dashboard                                                   */
+/* ------------------------------------------------------------------ */
 
-  return (
-    <div className="space-y-2">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <ShieldQuestion className="size-3.5 shrink-0 text-muted-foreground" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[12.5px] font-medium">Class Representative</p>
-          <p className="truncate text-[11px] text-muted-foreground">
-            {status === "pending"
-              ? "Application submitted · pending approval"
-              : status === "rejected"
-                ? "Your last application was not approved"
-                : "Apply and an admin will review your request"}
-          </p>
-        </div>
-        {status === "pending" || open ? null : (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-7 shrink-0 rounded-xl px-2.5 text-[11.5px]"
-            onClick={() => setOpen(true)}
-          >
-            Apply
-          </Button>
-        )}
-      </div>
-
-      {status !== "pending" && open ? (
-        <div className="space-y-2">
-          <Textarea
-            rows={2}
-            placeholder="Why should you be the CR?"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="rounded-xl border-white/70 bg-white/80 text-[12.5px]"
-          />
-          <Button
-            size="sm"
-            className="w-full rounded-xl"
-            disabled={reason.trim().length < 5}
-            onClick={async () => {
-              await applyForCr(reason);
-              setOpen(false);
-              setReason("");
-              toast.success("Application submitted — pending approval");
-            }}
-          >
-            Submit application
-          </Button>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-/**
- * Session & role. The role shown here is resolved on the server from the
- * roles table — the client never grants itself admin access.
- */
-function AccountCard() {
+export function ProfileView() {
   const fetchRole = useServerFn(getMyRole);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -233,52 +136,86 @@ function AccountCard() {
   };
 
   return (
-    <section>
-      <SectionTitle title="Account" subtitle={ROLE_LABEL[serverRole]} />
-      <GlassCard className="divide-y divide-foreground/5 px-3 py-1">
+    <div className="mx-auto w-full min-w-0 max-w-[700px] space-y-4 pb-4">
+      <IdentityCard />
+
+      <GlassCard className="divide-y divide-foreground/5 px-3.5 py-0.5">
+        <MenuRow icon={GraduationCap} label="Academic Details" to="/profile/academic" />
+        <MenuRow icon={Bell} label="Notifications" to="/profile/notifications" />
+        <MenuRow icon={Palette} label="Appearance" to="/profile/appearance" />
+        <MenuRow icon={ExternalLink} label="Useful Links" to="/profile/links" />
+        <MenuRow icon={Info} label="About AttendX" to="/profile/about" />
         {serverRole === "admin" ? (
-          <Link
-            to="/admin"
-            className="flex min-w-0 items-center gap-2.5 py-2.5 text-left"
-          >
-            <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
-              <ShieldCheck className="size-3.5 text-good" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-semibold">Admin console</span>
-              <span className="block truncate text-[11px] text-muted-foreground">
-                Review CR requests
-              </span>
-            </span>
-          </Link>
+          <MenuRow icon={ShieldCheck} label="Admin console" to="/admin" />
         ) : null}
-        <button
-          type="button"
-          onClick={signOut}
-          className="flex w-full min-w-0 items-center gap-2.5 py-2.5 text-left"
-        >
-          <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
-            <LogOut className="size-3.5 text-muted-foreground" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13px] font-semibold">Sign out</span>
-            <span className="block truncate text-[11px] text-muted-foreground">
-              You will stay signed in on this device until you sign out
-            </span>
-          </span>
-        </button>
+        <MenuRow icon={LogOut} label="Sign Out" danger onClick={signOut} />
       </GlassCard>
-    </section>
+    </div>
   );
 }
 
+function IdentityCard() {
+  const { meta } = useApp();
+  const role: Role = meta.role ?? "student";
 
-function ThemeCard() {
+  return (
+    <GlassCard strong className="px-4 py-4">
+      <div className="flex items-center gap-3.5">
+        <Avatar size={56} className="shrink-0 ring-1 ring-white/70" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-[17px] font-semibold leading-tight tracking-tight">
+            {meta.studentName || "Student"}
+          </p>
+          <p className="tnum truncate text-[12px] text-muted-foreground">{meta.usn || "—"}</p>
+          <p className="truncate text-[11.5px] text-muted-foreground">
+            {meta.department || "Dept"} • Semester {meta.semester || "—"} • Section{" "}
+            {meta.section || "—"}
+          </p>
+        </div>
+        <span className="shrink-0 self-start rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-medium text-foreground shadow-soft">
+          {ROLE_LABEL[role]}
+        </span>
+      </div>
+    </GlassCard>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Sub-page sections                                                   */
+/* ------------------------------------------------------------------ */
+
+export function AcademicDetailsCard() {
+  const { meta } = useApp();
+  const joined = meta.createdAt
+    ? new Date(meta.createdAt).toLocaleDateString(undefined, { month: "short", year: "numeric" })
+    : "—";
+
+  const rows = [
+    { label: "USN", value: meta.usn },
+    { label: "Email", value: meta.email },
+    { label: "Department", value: meta.department },
+    { label: "Semester", value: meta.semester },
+    { label: "Section", value: meta.section },
+    { label: "Joined", value: joined },
+  ];
+
+  return (
+    <GlassCard className="px-3.5 py-1">
+      <div className="divide-y divide-foreground/5">
+        {rows.map((r) => (
+          <InfoRow key={r.label} label={r.label} value={r.value} />
+        ))}
+      </div>
+    </GlassCard>
+  );
+}
+
+export function ThemeCard() {
   const { meta, updateMeta } = useApp();
-  const theme = meta.theme === "dark" ? "dark" : "light";
+  const theme = meta.theme === "light" ? "light" : "dark";
   const options = [
-    { key: "light" as const, label: "Light", icon: Sun },
-    { key: "dark" as const, label: "Dark", icon: Moon },
+    { key: "dark" as const, label: "Dark Slate", icon: Moon },
+    { key: "light" as const, label: "Soft White", icon: Sun },
   ];
   return (
     <GlassCard className="grid grid-cols-2 gap-1.5 p-1.5">
@@ -288,7 +225,7 @@ function ThemeCard() {
           type="button"
           onClick={() => updateMeta({ theme: o.key })}
           className={cn(
-            "flex items-center justify-center gap-2 rounded-2xl px-3 py-2 text-[13px] font-medium transition-colors",
+            "flex items-center justify-center gap-2 rounded-2xl px-3 py-2.5 text-[13px] font-medium transition-colors",
             theme === o.key
               ? "bg-ink text-ink-foreground shadow-soft"
               : "bg-white/60 text-foreground hover:bg-white/80",
@@ -302,12 +239,12 @@ function ThemeCard() {
   );
 }
 
-function RemindersCard() {
+export function RemindersCard() {
   const { meta, updateMeta } = useApp();
   const enabled = meta.reminderEnabled !== false;
   return (
-    <GlassCard className="divide-y divide-foreground/5 px-3 py-1">
-      <div className="flex items-center justify-between gap-3 py-2">
+    <GlassCard className="divide-y divide-foreground/5 px-3.5 py-1">
+      <div className="flex items-center justify-between gap-3 py-2.5">
         <div className="min-w-0">
           <p className="text-[12.5px] font-medium">Daily reminder</p>
           <p className="text-[11px] text-muted-foreground">
@@ -339,7 +276,7 @@ function RemindersCard() {
         </button>
       </div>
       {enabled ? (
-        <label className="flex items-center justify-between gap-3 py-2">
+        <label className="flex items-center justify-between gap-3 py-2.5">
           <span className="text-[12.5px] font-medium">Reminder time</span>
           <input
             type="time"
@@ -353,8 +290,46 @@ function RemindersCard() {
   );
 }
 
-/** The only place data can be destroyed — collapsed, and typed-confirmation gated. */
-function DangerZone() {
+export function UsefulLinksCard() {
+  return (
+    <GlassCard className="divide-y divide-foreground/5 px-3.5 py-0.5">
+      {IMPORTANT_LINKS.map((l) => (
+        <a
+          key={l.url}
+          href={l.url}
+          target="_blank"
+          rel="noreferrer"
+          className="flex w-full min-w-0 items-center gap-3 py-3"
+        >
+          <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+            <ExternalLink className="size-3.5 text-muted-foreground" />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium">{l.label}</span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground/70" />
+        </a>
+      ))}
+    </GlassCard>
+  );
+}
+
+export function AboutCard() {
+  return (
+    <GlassCard className="flex min-w-0 items-center gap-3 px-3.5 py-3">
+      <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+        <Info className="size-4 text-muted-foreground" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-[13px] font-semibold">AttendX · Version 1.0</p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          Smart attendance & timetable for CMR University.
+        </p>
+      </div>
+    </GlassCard>
+  );
+}
+
+/** The only place data can be destroyed — typed-confirmation gated. */
+export function DangerZone() {
   const { resetApp } = useApp();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState("");
@@ -365,10 +340,10 @@ function DangerZone() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="glass glass-hover flex w-full min-w-0 items-center gap-2.5 rounded-3xl px-3 py-2.5 text-left"
+        className="glass glass-hover flex w-full min-w-0 items-center gap-3 rounded-3xl px-3.5 py-3 text-left"
       >
-        <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
-          <TriangleAlert className="size-3.5 text-bad" />
+        <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+          <TriangleAlert className="size-4 text-bad" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[13px] font-semibold text-bad">Reset all data</span>
@@ -429,3 +404,5 @@ function DangerZone() {
     </GlassCard>
   );
 }
+
+export { SectionTitle };

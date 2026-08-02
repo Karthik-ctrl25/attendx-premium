@@ -36,9 +36,9 @@ function SubjectCardBase({ subject, index = 0 }: { subject: Subject; index?: num
       <Link
         to="/attendance/$code"
         params={{ code: subject.code }}
-        className="glass glass-hover flex h-full w-full min-w-0 flex-col rounded-3xl p-4"
+        className="glass glass-hover flex h-full w-full min-w-0 flex-col rounded-3xl p-5"
       >
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2.5">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3">
           <div className="min-w-0">
             <h3 className="truncate font-display text-[15px] font-semibold leading-snug tracking-tight">
               {subject.name}
@@ -49,7 +49,7 @@ function SubjectCardBase({ subject, index = 0 }: { subject: Subject; index?: num
           </div>
           <span
             className={cn(
-              "tnum shrink-0 whitespace-nowrap font-display text-xl font-semibold leading-none",
+              "tnum shrink-0 whitespace-nowrap font-display text-[26px] font-semibold leading-none tracking-tight",
               TEXT[status],
             )}
           >
@@ -58,7 +58,7 @@ function SubjectCardBase({ subject, index = 0 }: { subject: Subject; index?: num
           <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
         </div>
 
-        <div className="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-foreground/10">
+        <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-foreground/10">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min(100, pct)}%` }}
@@ -67,15 +67,18 @@ function SubjectCardBase({ subject, index = 0 }: { subject: Subject; index?: num
           />
         </div>
 
-        <div className="mt-auto grid grid-cols-3 gap-2 pt-3.5">
+        <div className="mt-auto grid grid-cols-3 gap-2.5 pt-4">
           {[
             { label: "Present", value: subject.present },
             { label: "Absent", value: subject.absent },
             { label: "Safe bunks", value: safe },
           ].map((x) => (
-            <div key={x.label} className="min-w-0 rounded-2xl bg-white/60 px-2 py-2 text-center">
+            <div
+              key={x.label}
+              className="min-w-0 rounded-2xl bg-white/60 px-2 py-2.5 text-center ring-1 ring-white/50"
+            >
               <p className="tnum font-display text-base font-semibold leading-none">{x.value}</p>
-              <p className="mt-1 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              <p className="mt-1.5 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 {x.label}
               </p>
             </div>

@@ -116,7 +116,11 @@ function SubjectDetail() {
         >
           <X className="size-4" /> Absent
         </Button>
-        <Button variant="secondary" className="h-11 w-full rounded-2xl" onClick={() => setEditing((e) => !e)}>
+        <Button
+          variant="secondary"
+          className="h-11 w-full rounded-2xl"
+          onClick={() => setEditing((e) => !e)}
+        >
           <Pencil className="size-4" /> Edit
         </Button>
         <Button

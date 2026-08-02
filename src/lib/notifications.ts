@@ -82,7 +82,7 @@ export function buildNotifications(input: {
       title: "A new semester has started",
       body: `Are you now in Semester ${nextSem}? Confirm to load the right timetable.`,
       ts: (meta.semesterStartedAt ?? now) + SEMESTER_LENGTH_DAYS * DAY,
-      to: "/profile",
+      to: "/",
     });
   }
 

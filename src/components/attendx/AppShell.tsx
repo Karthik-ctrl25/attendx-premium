@@ -30,7 +30,6 @@ export const NAV: NavItem[] = [
   { to: "/profile", label: "Profile", icon: User },
 ];
 
-
 function Brand() {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
@@ -49,10 +48,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { meta, timetable, updateMeta } = useApp();
   useDailyReminder(meta, timetable, updateMeta);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", meta.theme === "dark");
-  }, [meta.theme]);
 
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 

@@ -95,7 +95,11 @@ function AdminConsole() {
                 </p>
                 <p className="text-xs text-muted-foreground">{r.reason}</p>
                 <div className="flex gap-2">
-                  <Button size="sm" className="rounded-xl" onClick={() => void reviewCrRequest(r.id, true)}>
+                  <Button
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={() => void reviewCrRequest(r.id, true)}
+                  >
                     Approve
                   </Button>
                   <Button

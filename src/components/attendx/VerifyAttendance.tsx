@@ -31,14 +31,22 @@ const KIND_TONE: Record<SubjectDiff["kind"], string> = {
   same: "text-muted-foreground",
 };
 
-function Counts({ label, s }: { label: string; s?: { present: number; absent: number; total: number } }) {
+function Counts({
+  label,
+  s,
+}: {
+  label: string;
+  s?: { present: number; absent: number; total: number };
+}) {
   return (
     <div className="rounded-2xl bg-white/60 px-3 py-2">
       <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
       <p className="tnum mt-0.5 text-sm font-semibold">
         {s ? `${s.present} / ${s.total}` : "—"}
         {s ? (
-          <span className="ml-1.5 text-xs font-normal text-muted-foreground">{pct(s as never)}%</span>
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+            {pct(s as never)}%
+          </span>
         ) : null}
       </p>
     </div>
@@ -66,7 +74,9 @@ export function VerifyAttendance({ onDone }: { onDone?: () => void }) {
         confidence: result.confidence,
       });
       await updateMeta({ lastVerifiedAt: Date.now() });
-      toast.success(next ? "Attendance synced with ERP" : "Verification recorded — nothing changed");
+      toast.success(
+        next ? "Attendance synced with ERP" : "Verification recorded — nothing changed",
+      );
       setResult(null);
       onDone?.();
     } finally {
@@ -102,12 +112,13 @@ export function VerifyAttendance({ onDone }: { onDone?: () => void }) {
     );
   }
 
-
   return (
     <div className="space-y-5">
       <div>
         <h2 className="font-display text-[26px] font-semibold tracking-tight">
-          {changed.length ? `${changed.length} difference${changed.length > 1 ? "s" : ""} found` : "Everything matches"}
+          {changed.length
+            ? `${changed.length} difference${changed.length > 1 ? "s" : ""} found`
+            : "Everything matches"}
         </h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
           Stored counts on the left, ERP on the right. Choose what to do.
@@ -123,9 +134,7 @@ export function VerifyAttendance({ onDone }: { onDone?: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.04, 0.3), duration: 0.35 }}
             >
-              <GlassCard
-                className={cn("p-4", d.kind === "changed" && "ring-1 ring-warn/50")}
-              >
+              <GlassCard className={cn("p-4", d.kind === "changed" && "ring-1 ring-warn/50")}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate font-display text-[15px] font-semibold tracking-tight">

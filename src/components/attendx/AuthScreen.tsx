@@ -190,9 +190,17 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
             />
           )}
 
-          <Button type="submit" disabled={!canSubmit} className="h-12 w-full rounded-2xl text-[15px]">
+          <Button
+            type="submit"
+            disabled={!canSubmit}
+            className="h-12 w-full rounded-2xl text-[15px]"
+          >
             {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-            {mode === "forgot" ? "Send reset link" : mode === "signup" ? "Create Account" : "Sign In"}
+            {mode === "forgot"
+              ? "Send reset link"
+              : mode === "signup"
+                ? "Create Account"
+                : "Sign In"}
           </Button>
 
           <div className="flex items-center justify-between pt-1 text-[13px]">

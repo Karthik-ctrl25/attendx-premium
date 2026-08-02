@@ -20,6 +20,12 @@ import { Route as TimetableRouteImport } from './routes/timetable'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
 import { Route as AttendanceCodeRouteImport } from './routes/attendance.$code'
+import { Route as ProfileIndexRouteImport } from './routes/profile.index'
+import { Route as ProfileAboutRouteImport } from './routes/profile.about'
+import { Route as ProfileAcademicRouteImport } from './routes/profile.academic'
+import { Route as ProfileAppearanceRouteImport } from './routes/profile.appearance'
+import { Route as ProfileLinksRouteImport } from './routes/profile.links'
+import { Route as ProfileNotificationsRouteImport } from './routes/profile.notifications'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +82,36 @@ const AttendanceCodeRoute = AttendanceCodeRouteImport.update({
   path: '/attendance/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileAboutRoute = ProfileAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileAcademicRoute = ProfileAcademicRouteImport.update({
+  id: '/academic',
+  path: '/academic',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileAppearanceRoute = ProfileAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileLinksRoute = ProfileLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileNotificationsRoute = ProfileNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => ProfileRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,12 +119,18 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
+  '/profile/about': typeof ProfileAboutRoute
+  '/profile/academic': typeof ProfileAcademicRoute
+  '/profile/appearance': typeof ProfileAppearanceRoute
+  '/profile/links': typeof ProfileLinksRoute
+  '/profile/notifications': typeof ProfileNotificationsRoute
   '/attendance/': typeof AttendanceIndexRoute
+  '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,12 +138,17 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
-  '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
+  '/profile/about': typeof ProfileAboutRoute
+  '/profile/academic': typeof ProfileAcademicRoute
+  '/profile/appearance': typeof ProfileAppearanceRoute
+  '/profile/links': typeof ProfileLinksRoute
+  '/profile/notifications': typeof ProfileNotificationsRoute
   '/attendance': typeof AttendanceIndexRoute
+  '/profile': typeof ProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,12 +157,18 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
+  '/profile/about': typeof ProfileAboutRoute
+  '/profile/academic': typeof ProfileAcademicRoute
+  '/profile/appearance': typeof ProfileAppearanceRoute
+  '/profile/links': typeof ProfileLinksRoute
+  '/profile/notifications': typeof ProfileNotificationsRoute
   '/attendance/': typeof AttendanceIndexRoute
+  '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -130,7 +183,13 @@ export interface FileRouteTypes {
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
+    | '/profile/about'
+    | '/profile/academic'
+    | '/profile/appearance'
+    | '/profile/links'
+    | '/profile/notifications'
     | '/attendance/'
+    | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -138,12 +197,17 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/class'
     | '/history'
-    | '/profile'
     | '/reset-password'
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
+    | '/profile/about'
+    | '/profile/academic'
+    | '/profile/appearance'
+    | '/profile/links'
+    | '/profile/notifications'
     | '/attendance'
+    | '/profile'
   id:
     | '__root__'
     | '/'
@@ -156,7 +220,13 @@ export interface FileRouteTypes {
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
+    | '/profile/about'
+    | '/profile/academic'
+    | '/profile/appearance'
+    | '/profile/links'
+    | '/profile/notifications'
     | '/attendance/'
+    | '/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,7 +235,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   ClassRoute: typeof ClassRoute
   HistoryRoute: typeof HistoryRoute
-  ProfileRoute: typeof ProfileRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
   TimetableRoute: typeof TimetableRoute
   VerifyRoute: typeof VerifyRoute
@@ -252,8 +322,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttendanceCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile/': {
+      id: '/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/about': {
+      id: '/profile/about'
+      path: '/about'
+      fullPath: '/profile/about'
+      preLoaderRoute: typeof ProfileAboutRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/academic': {
+      id: '/profile/academic'
+      path: '/academic'
+      fullPath: '/profile/academic'
+      preLoaderRoute: typeof ProfileAcademicRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/appearance': {
+      id: '/profile/appearance'
+      path: '/appearance'
+      fullPath: '/profile/appearance'
+      preLoaderRoute: typeof ProfileAppearanceRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/links': {
+      id: '/profile/links'
+      path: '/links'
+      fullPath: '/profile/links'
+      preLoaderRoute: typeof ProfileLinksRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/notifications': {
+      id: '/profile/notifications'
+      path: '/notifications'
+      fullPath: '/profile/notifications'
+      preLoaderRoute: typeof ProfileNotificationsRouteImport
+      parentRoute: typeof ProfileRoute
+    }
   }
 }
+
+interface ProfileRouteChildren {
+  ProfileAboutRoute: typeof ProfileAboutRoute
+  ProfileAcademicRoute: typeof ProfileAcademicRoute
+  ProfileAppearanceRoute: typeof ProfileAppearanceRoute
+  ProfileLinksRoute: typeof ProfileLinksRoute
+  ProfileNotificationsRoute: typeof ProfileNotificationsRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileAboutRoute: ProfileAboutRoute,
+  ProfileAcademicRoute: ProfileAcademicRoute,
+  ProfileAppearanceRoute: ProfileAppearanceRoute,
+  ProfileLinksRoute: ProfileLinksRoute,
+  ProfileNotificationsRoute: ProfileNotificationsRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -261,7 +394,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   ClassRoute: ClassRoute,
   HistoryRoute: HistoryRoute,
-  ProfileRoute: ProfileRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
   TimetableRoute: TimetableRoute,
   VerifyRoute: VerifyRoute,

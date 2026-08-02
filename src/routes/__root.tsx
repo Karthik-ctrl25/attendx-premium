@@ -89,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "AttendX turns your CMR University ERP screenshots into a smart timetable and offline attendance tracker.",
       },
-      { name: "theme-color", content: "#DADDE1" },
+      { name: "theme-color", content: "#1A1D21" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "AttendX" },
       { property: "og:title", content: "AttendX — Smart Attendance & Timetable" },
@@ -137,10 +137,13 @@ function SetupGate() {
   const { ready, meta } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Theme is applied app-wide — auth and onboarding included.
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", (meta.theme ?? "dark") !== "light");
+  }, [meta.theme]);
+
   // Password recovery must stay reachable without a completed profile.
   if (pathname === "/reset-password") return <Outlet />;
-
-
 
   if (!ready) {
     return (
@@ -161,7 +164,6 @@ function SetupGate() {
     </ClassSpaceProvider>
   );
 }
-
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
