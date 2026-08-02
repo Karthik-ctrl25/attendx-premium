@@ -317,13 +317,13 @@ function RemindersCard() {
         </button>
       </div>
       {enabled ? (
-        <label className="flex items-center justify-between gap-3 pt-2.5">
-          <span className="text-sm font-medium">Reminder time</span>
+        <label className="flex items-center justify-between gap-3 py-2">
+          <span className="text-[12.5px] font-medium">Reminder time</span>
           <input
             type="time"
             value={meta.reminderTime || DEFAULT_REMINDER_TIME}
             onChange={(e) => updateMeta({ reminderTime: e.target.value || DEFAULT_REMINDER_TIME })}
-            className="tnum shrink-0 rounded-xl bg-white/80 px-3 py-1.5 text-sm shadow-soft outline-none"
+            className="tnum shrink-0 rounded-xl bg-white/80 px-2.5 py-1 text-[12.5px] shadow-soft outline-none"
           />
         </label>
       ) : null}
