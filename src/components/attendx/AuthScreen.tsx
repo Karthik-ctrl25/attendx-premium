@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Phone, Sparkles } from "lucide-react";
+import { Loader2, MailCheck, Sparkles } from "lucide-react";
 
 import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 /** Google "G" mark — inline so the screen works fully offline. */
 function GoogleMark() {
@@ -28,13 +31,26 @@ function GoogleMark() {
   );
 }
 
+type Mode = "signin" | "signup" | "forgot";
+
+const field = "h-12 rounded-2xl border-white/70 bg-white/70 text-[15px] shadow-none";
+
 export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [mode, setMode] = useState<Mode>("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const signIn = async () => {
-    setBusy(true);
+  const reset = () => {
     setError("");
+    setNotice("");
+  };
+
+  const signInGoogle = async () => {
+    setBusy(true);
+    reset();
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
@@ -47,6 +63,50 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
     onContinue?.();
     setBusy(false);
   };
+
+  const submitEmail = async () => {
+    setBusy(true);
+    reset();
+    try {
+      if (mode === "forgot") {
+        const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (err) throw err;
+        setNotice("Password reset link sent. Check your inbox.");
+        return;
+      }
+      if (mode === "signup") {
+        const { data, error: err } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
+        if (err) throw err;
+        if (!data.session) {
+          setNotice("Account created. Verify your email, then sign in.");
+          setMode("signin");
+          setPassword("");
+        } else {
+          onContinue?.();
+        }
+        return;
+      }
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (err) throw err;
+      onContinue?.();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const canSubmit =
+    email.trim().includes("@") && (mode === "forgot" || password.length >= 6) && !busy;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-6 py-16 text-center">
@@ -80,34 +140,91 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.28, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="mt-12 w-full space-y-3"
+        className="mt-10 w-full space-y-3"
       >
         <motion.button
           type="button"
           whileTap={{ scale: 0.98 }}
-          onClick={signIn}
+          onClick={signInGoogle}
           disabled={busy}
           className="glass-strong flex h-14 w-full items-center justify-center gap-3 rounded-[22px] text-[15px] font-medium transition-transform duration-300 hover:-translate-y-0.5"
         >
           {busy ? <Loader2 className="size-5 animate-spin" /> : <GoogleMark />}
           Continue with Google
         </motion.button>
+        <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70">
+          Recommended
+        </p>
 
-        <button
-          type="button"
-          disabled
-          className="glass flex h-14 w-full cursor-not-allowed items-center justify-center gap-3 rounded-[22px] text-[15px] font-medium opacity-60"
+        <div className="flex items-center gap-3 pt-2">
+          <span className="h-px flex-1 bg-foreground/10" />
+          <span className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">or</span>
+          <span className="h-px flex-1 bg-foreground/10" />
+        </div>
+
+        <form
+          className="space-y-2.5 pt-2 text-left"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (canSubmit) void submitEmail();
+          }}
         >
-          <Phone className="size-5 text-muted-foreground" />
-          Continue with Phone
-          <span className="rounded-full bg-foreground/8 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Coming Soon
-          </span>
-        </button>
+          <Input
+            type="email"
+            autoComplete="email"
+            placeholder="Email"
+            aria-label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={field}
+          />
+          {mode === "forgot" ? null : (
+            <Input
+              type="password"
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              placeholder="Password"
+              aria-label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={field}
+            />
+          )}
+
+          <Button type="submit" disabled={!canSubmit} className="h-12 w-full rounded-2xl text-[15px]">
+            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+            {mode === "forgot" ? "Send reset link" : mode === "signup" ? "Create Account" : "Sign In"}
+          </Button>
+
+          <div className="flex items-center justify-between pt-1 text-[13px]">
+            <button
+              type="button"
+              className="text-muted-foreground underline-offset-4 hover:underline"
+              onClick={() => {
+                reset();
+                setMode(mode === "signup" ? "signin" : "signup");
+              }}
+            >
+              {mode === "signup" ? "Sign In" : "Create Account"}
+            </button>
+            <button
+              type="button"
+              className="text-muted-foreground underline-offset-4 hover:underline"
+              onClick={() => {
+                reset();
+                setMode(mode === "forgot" ? "signin" : "forgot");
+              }}
+            >
+              {mode === "forgot" ? "Back to sign in" : "Forgot Password"}
+            </button>
+          </div>
+        </form>
       </motion.div>
 
-      {error ? (
-        <p className="mt-4 text-[13px] text-destructive">{error}</p>
+      {error ? <p className="mt-4 text-[13px] text-destructive">{error}</p> : null}
+      {notice ? (
+        <p className="mt-4 flex items-center justify-center gap-2 text-[13px] text-muted-foreground">
+          <MailCheck className="size-4" /> {notice}
+        </p>
       ) : null}
 
       <motion.p
