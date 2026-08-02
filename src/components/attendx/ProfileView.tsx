@@ -3,14 +3,11 @@ import {
   BadgeCheck,
   Info,
   Moon,
-  Pencil,
-  Save,
   ShieldQuestion,
   Sun,
   TriangleAlert,
-  Upload,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/attendx/Avatar";
