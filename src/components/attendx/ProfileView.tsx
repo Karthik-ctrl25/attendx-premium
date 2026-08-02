@@ -24,9 +24,9 @@ import { cn } from "@/lib/utils";
 
 function InfoRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2.5">
-      <span className="text-[13px] text-muted-foreground">{label}</span>
-      <span className="min-w-0 truncate text-[13px] font-medium">{value || "—"}</span>
+    <div className="flex items-center justify-between gap-4 py-[7px]">
+      <span className="text-[12.5px] text-muted-foreground">{label}</span>
+      <span className="min-w-0 truncate text-[12.5px] font-medium">{value || "—"}</span>
     </div>
   );
 }
@@ -36,26 +36,25 @@ export function ProfileView() {
   const role: Role = meta.role ?? "student";
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-2xl space-y-4 pb-2 lg:max-w-3xl">
+    <div className="mx-auto w-full min-w-0 max-w-[700px] space-y-3 pb-2">
       <header>
-        <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Profile</h1>
-        <p className="mt-0.5 text-xs text-muted-foreground">{meta.university}</p>
+        <h1 className="font-display text-xl font-semibold tracking-tight">Profile</h1>
+        <p className="text-[11px] text-muted-foreground">{meta.university}</p>
       </header>
 
       <IdentityCard />
-      <AcademicDetailsCard />
-
-      <SemesterCard />
 
       <section>
-        <SectionTitle title="Class role" subtitle={ROLE_LABEL[role]} />
-        <CrCard />
+        <SectionTitle title="Academic information" />
+        <AcademicDetailsCard />
       </section>
+
+      <SemesterCard />
 
       {can(role, "cr.approve") ? <AdminConsole /> : null}
 
       <section>
-        <SectionTitle title="Appearance" />
+        <SectionTitle title="Preferences" />
         <ThemeCard />
       </section>
 
@@ -65,14 +64,14 @@ export function ProfileView() {
       </section>
 
       <section>
-        <SectionTitle title="About AttendX" />
-        <GlassCard className="flex min-w-0 items-center gap-3 p-3.5">
-          <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-            <Info className="size-4 text-muted-foreground" />
+        <SectionTitle title="About" />
+        <GlassCard className="flex min-w-0 items-center gap-2.5 px-3 py-2.5">
+          <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+            <Info className="size-3.5 text-muted-foreground" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">AttendX · Version 1.0</p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="truncate text-[13px] font-semibold">AttendX · Version 1.0</p>
+            <p className="truncate text-[11px] text-muted-foreground">
               Private, offline attendance for CMR University.
             </p>
           </div>
@@ -80,7 +79,7 @@ export function ProfileView() {
       </section>
 
       <section className="pb-2">
-        <SectionTitle title="Danger zone" subtitle="Irreversible, this device only" />
+        <SectionTitle title="Danger zone" />
         <DangerZone />
       </section>
     </div>
@@ -93,27 +92,35 @@ function IdentityCard() {
   const role: Role = meta.role ?? "student";
 
   return (
-    <GlassCard strong className="flex items-center gap-3 p-3.5">
-      <Avatar size={52} className="shrink-0 ring-1 ring-white/70" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-[16px] font-semibold tracking-tight">
-          {meta.studentName || "Student"}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {meta.department || "Dept"} • Semester {meta.semester || "—"} • Section {meta.section || "—"}
-        </p>
-        <p className="mt-0.5 truncate text-[11px] font-medium text-primary">{ROLE_LABEL[role]}</p>
+    <GlassCard strong className="px-3 py-2.5">
+      <div className="flex items-center gap-2.5">
+        <Avatar size={44} className="shrink-0 ring-1 ring-white/70" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-[15px] font-semibold leading-tight tracking-tight">
+            {meta.studentName || "Student"}
+          </p>
+          <p className="truncate text-[11.5px] text-muted-foreground">
+            {meta.department || "Dept"} • Semester {meta.semester || "—"} • Section{" "}
+            {meta.section || "—"}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-medium text-primary shadow-soft">
+          {ROLE_LABEL[role]}
+        </span>
       </div>
+      {role === "student" ? (
+        <div className="mt-2 border-t border-foreground/5 pt-2">
+          <CrCard />
+        </div>
+      ) : null}
     </GlassCard>
   );
 }
 
 function AcademicDetailsCard() {
   const { meta } = useApp();
-  const role: Role = meta.role ?? "student";
   const joined = meta.createdAt
     ? new Date(meta.createdAt).toLocaleDateString(undefined, {
-        day: "numeric",
         month: "short",
         year: "numeric",
       })
@@ -125,12 +132,11 @@ function AcademicDetailsCard() {
     { label: "Department", value: meta.department },
     { label: "Semester", value: meta.semester },
     { label: "Section", value: meta.section },
-    { label: "Role", value: ROLE_LABEL[role] },
     { label: "Joined", value: joined },
   ];
 
   return (
-    <GlassCard className="p-3.5">
+    <GlassCard className="px-3 py-1">
       <div className="divide-y divide-foreground/5">
         {rows.map((r) => (
           <InfoRow key={r.label} label={r.label} value={r.value} />
