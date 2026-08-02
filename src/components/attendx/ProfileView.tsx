@@ -343,14 +343,14 @@ function DangerZone() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="glass glass-hover flex w-full min-w-0 items-center gap-3 rounded-3xl px-4 py-3 text-left"
+        className="glass glass-hover flex w-full min-w-0 items-center gap-2.5 rounded-3xl px-3 py-2.5 text-left"
       >
-        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-          <TriangleAlert className="size-4 text-bad" />
+        <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+          <TriangleAlert className="size-3.5 text-bad" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-bad">Reset all data</span>
-          <span className="block truncate text-xs text-muted-foreground">
+          <span className="block truncate text-[13px] font-semibold text-bad">Reset all data</span>
+          <span className="block truncate text-[11px] text-muted-foreground">
             Remove everything stored on this device
           </span>
         </span>
