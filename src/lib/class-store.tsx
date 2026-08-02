@@ -17,6 +17,18 @@ import {
 } from "react";
 
 import { db } from "./db";
+import {
+  newId,
+  pullClassSpace,
+  pushAnnouncement,
+  pushCrRequest,
+  pushEvent,
+  pushPoll,
+  pushVote,
+  removeRow,
+  scopeOf,
+} from "./cloud-sync";
+import { useSession } from "./session";
 import { assertCan, type Role } from "./roles";
 import { useApp } from "./store";
 import type {
@@ -30,8 +42,8 @@ import type {
   ResourceKind,
 } from "./types";
 
-let counter = 0;
-const uid = (p: string) => `${p}_${Date.now().toString(36)}_${(counter += 1)}`;
+/** Class-space ids are UUIDs so local rows and backend rows share identity. */
+const uid = (_p: string) => newId();
 
 interface ClassState {
   announcements: Announcement[];
@@ -60,6 +72,13 @@ const Ctx = createContext<ClassState | null>(null);
 export function ClassSpaceProvider({ children }: { children: ReactNode }) {
   const { meta, updateMeta } = useApp();
   const role: Role = meta.role ?? "student";
+  const session = useSession();
+  const userId = session?.user.id ?? null;
+  const scope = scopeOf(meta);
+  const scopeKey = scope ? `${scope.department}|${scope.semester}|${scope.section}` : "";
+  const fire = (task: Promise<unknown>) => {
+    void task.catch(() => undefined);
+  };
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [polls, setPolls] = useState<Poll[]>([]);
