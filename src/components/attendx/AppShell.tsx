@@ -50,10 +50,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { meta, timetable, updateMeta } = useApp();
   useDailyReminder(meta, timetable, updateMeta);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", meta.theme === "dark");
-  }, [meta.theme]);
-
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
   return (

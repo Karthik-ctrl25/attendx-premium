@@ -137,6 +137,11 @@ function SetupGate() {
   const { ready, meta } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Theme is applied app-wide — auth and onboarding included.
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", (meta.theme ?? "dark") !== "light");
+  }, [meta.theme]);
+
   // Password recovery must stay reachable without a completed profile.
   if (pathname === "/reset-password") return <Outlet />;
 
