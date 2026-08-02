@@ -259,14 +259,14 @@ function ThemeCard() {
     { key: "dark" as const, label: "Dark", icon: Moon },
   ];
   return (
-    <GlassCard className="grid grid-cols-2 gap-2 p-3">
+    <GlassCard className="grid grid-cols-2 gap-2 p-2.5">
       {options.map((o) => (
         <button
           key={o.key}
           type="button"
           onClick={() => updateMeta({ theme: o.key })}
           className={cn(
-            "flex flex-col items-center gap-2 rounded-2xl px-4 py-4 text-sm font-medium transition-colors",
+            "flex flex-col items-center gap-1.5 rounded-2xl px-3 py-3 text-sm font-medium transition-colors",
             theme === o.key
               ? "bg-ink text-ink-foreground shadow-soft"
               : "bg-white/60 text-foreground hover:bg-white/80",
