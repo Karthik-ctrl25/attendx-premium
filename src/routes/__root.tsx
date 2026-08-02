@@ -145,8 +145,6 @@ function SetupGate() {
   // Password recovery must stay reachable without a completed profile.
   if (pathname === "/reset-password") return <Outlet />;
 
-
-
   if (!ready) {
     return (
       <div className="grid min-h-dvh place-items-center">
@@ -166,7 +164,6 @@ function SetupGate() {
     </ClassSpaceProvider>
   );
 }
-
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

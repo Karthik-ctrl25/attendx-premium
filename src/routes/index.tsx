@@ -60,8 +60,7 @@ function Dashboard() {
     <div className="w-full min-w-0 space-y-5">
       <header>
         <p className="text-sm text-muted-foreground">
-          {DAYS[day]} ·{" "}
-          {now.toLocaleDateString(undefined, { day: "numeric", month: "long" })}
+          {DAYS[day]} · {now.toLocaleDateString(undefined, { day: "numeric", month: "long" })}
         </p>
         <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           {greeting(now.getHours())}
@@ -70,8 +69,6 @@ function Dashboard() {
       </header>
 
       <SemesterCard compact />
-
-
 
       <GlassCard strong className="flex flex-col items-center gap-4 p-6">
         <AttendanceRing value={stats.pct} total={stats.total} size={150} sublabel="Overall" />

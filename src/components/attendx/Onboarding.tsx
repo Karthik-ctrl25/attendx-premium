@@ -5,16 +5,9 @@ import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthScreen } from "@/components/attendx/AuthScreen";
 import { ClassPicker, type ClassChoice } from "@/components/attendx/ClassPicker";
-import {
-  AttendanceUploader,
-  type ExtractResult,
-} from "@/components/attendx/AttendanceUploader";
+import { AttendanceUploader, type ExtractResult } from "@/components/attendx/AttendanceUploader";
 import { AttendanceReview } from "@/components/attendx/AttendanceReview";
-import {
-  DetailsStep,
-  detailsReady,
-  type StudentDetails,
-} from "@/components/attendx/DetailsStep";
+import { DetailsStep, detailsReady, type StudentDetails } from "@/components/attendx/DetailsStep";
 import { ErpShortcut } from "@/components/attendx/ErpShortcut";
 import { TutorialVideo } from "@/components/attendx/TutorialVideo";
 import { getTimetableFor } from "@/lib/timetable-dataset";
@@ -117,7 +110,6 @@ export function Onboarding() {
       setSaving(false);
     }
   };
-
 
   return (
     <div className="min-h-dvh">

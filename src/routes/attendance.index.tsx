@@ -98,7 +98,9 @@ function AttendanceIndex() {
           <ShieldCheck className="size-4 text-muted-foreground" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Verify ERP</p>
+          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Verify ERP
+          </p>
           <p className="truncate text-sm font-semibold">Last verified {verified}</p>
         </div>
         <Button asChild size="sm" variant="secondary" className="shrink-0 rounded-xl">

@@ -50,9 +50,7 @@ export const Route = createFileRoute("/class")({
 const EVENT_KINDS: ClassEventKind[] = ["Assignment", "Seminar", "Lab Exam", "IA"];
 
 function Empty({ text }: { text: string }) {
-  return (
-    <GlassCard className="p-6 text-center text-sm text-muted-foreground">{text}</GlassCard>
-  );
+  return <GlassCard className="p-6 text-center text-sm text-muted-foreground">{text}</GlassCard>;
 }
 
 function Composer({
@@ -105,7 +103,11 @@ function ClassPage() {
       <header>
         <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Class</h1>
         <p className="mt-1 truncate text-sm text-muted-foreground">
-          {[meta.department, meta.semester && `Semester ${meta.semester}`, meta.section && `Section ${meta.section}`]
+          {[
+            meta.department,
+            meta.semester && `Semester ${meta.semester}`,
+            meta.section && `Section ${meta.section}`,
+          ]
             .filter(Boolean)
             .join(" · ") || meta.university}
         </p>
@@ -183,12 +185,10 @@ function Announcements({ role }: { role: Role }) {
                     </div>
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {(
-                      [
-                        { kind: "helpful" as const, icon: ThumbsUp, label: "Helpful" },
-                        { kind: "thanks" as const, icon: Heart, label: "Thanks" },
-                      ]
-                    ).map((r) => (
+                    {[
+                      { kind: "helpful" as const, icon: ThumbsUp, label: "Helpful" },
+                      { kind: "thanks" as const, icon: Heart, label: "Thanks" },
+                    ].map((r) => (
                       <button
                         key={r.kind}
                         type="button"
@@ -297,10 +297,7 @@ function Polls({ role }: { role: Role }) {
           {polls.map((p) => {
             const total = p.options.reduce((sum, o) => sum + o.votes, 0);
             return (
-              <GlassCard
-                key={p.id}
-                className={cn("p-5", p.pinned && "ring-1 ring-foreground/10")}
-              >
+              <GlassCard key={p.id} className={cn("p-5", p.pinned && "ring-1 ring-foreground/10")}>
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
                     <Vote className="size-4 text-muted-foreground" />

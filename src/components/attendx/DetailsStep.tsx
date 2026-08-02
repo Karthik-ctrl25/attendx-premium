@@ -94,7 +94,6 @@ export function DetailsStep({
           <span className="min-w-0 truncate text-[13px] font-medium">{value.email || "—"}</span>
         </div>
       </div>
-
     </div>
   );
 }

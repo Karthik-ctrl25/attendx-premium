@@ -91,9 +91,7 @@ function MenuRow({
         <Icon className={cn("size-4", danger ? "text-bad" : "text-muted-foreground")} />
       </span>
       <span className="min-w-0 flex-1">
-        <span
-          className={cn("block truncate text-[13.5px] font-medium", danger && "text-bad")}
-        >
+        <span className={cn("block truncate text-[13.5px] font-medium", danger && "text-bad")}>
           {label}
         </span>
       </span>

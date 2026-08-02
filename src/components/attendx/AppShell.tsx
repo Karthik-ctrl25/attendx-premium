@@ -30,7 +30,6 @@ export const NAV: NavItem[] = [
   { to: "/profile", label: "Profile", icon: User },
 ];
 
-
 function Brand() {
   return (
     <div className="flex min-w-0 items-center gap-2.5">

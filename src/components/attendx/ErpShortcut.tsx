@@ -23,7 +23,9 @@ export function ErpShortcut({ className }: { className?: string }) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">Open CMR ERP</p>
-          <p className="truncate text-xs text-muted-foreground">erp.cmr.edu.in · opens in browser</p>
+          <p className="truncate text-xs text-muted-foreground">
+            erp.cmr.edu.in · opens in browser
+          </p>
         </div>
       </a>
       <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">

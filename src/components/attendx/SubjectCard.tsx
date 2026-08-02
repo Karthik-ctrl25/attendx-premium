@@ -80,7 +80,6 @@ function SubjectCardBase({ subject, index = 0 }: { subject: Subject; index?: num
               <p className="tnum font-display text-base font-semibold leading-none">{x.value}</p>
               <p className="mt-1.5 truncate text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 {x.label}
-
               </p>
             </div>
           ))}

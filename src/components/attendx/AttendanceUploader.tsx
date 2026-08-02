@@ -26,7 +26,6 @@ export interface ExtractResult {
   confidence: number;
 }
 
-
 export function AttendanceUploader({
   existing,
   onResult,
@@ -96,15 +95,12 @@ export function AttendanceUploader({
               : "Could not read that screenshot. Try a clearer image.",
           );
         }
-
       } finally {
         setBusy(false);
       }
     },
     [duplicateCheck, imports, onResult],
-
   );
-
 
   return (
     <div className="space-y-4">
@@ -185,13 +181,8 @@ export function AttendanceUploader({
                 <CloudUpload className="size-9 text-muted-foreground" />
               </motion.div>
               <div>
-                <p className="font-display text-xl font-semibold tracking-tight">
-                  {title}
-
-                </p>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                  or
-                </p>
+                <p className="font-display text-xl font-semibold tracking-tight">{title}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">or</p>
               </div>
               <Button
                 className="rounded-2xl px-6"
