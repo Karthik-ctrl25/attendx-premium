@@ -1,8 +1,12 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import {
-  
   Info,
+  LogOut,
   Moon,
+  ShieldCheck,
   ShieldQuestion,
   Sun,
   TriangleAlert,
@@ -16,9 +20,11 @@ import { SemesterCard } from "@/components/attendx/SemesterCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { getMyRole } from "@/lib/auth.functions";
 import { useClassSpace } from "@/lib/class-store";
 import { DEFAULT_REMINDER_TIME, requestNotificationPermission } from "@/lib/reminders";
-import { ROLE_LABEL, can, type Role } from "@/lib/roles";
+import { ROLE_LABEL, type Role } from "@/lib/roles";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
