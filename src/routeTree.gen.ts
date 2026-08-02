@@ -14,6 +14,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as ClassRouteImport } from './routes/class'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TimetableRouteImport } from './routes/timetable'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
@@ -44,6 +45,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TimetableRoute = TimetableRouteImport.update({
   id: '/timetable',
   path: '/timetable',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/class'
     | '/history'
     | '/profile'
+    | '/reset-password'
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/class'
     | '/history'
     | '/profile'
+    | '/reset-password'
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/class'
     | '/history'
     | '/profile'
+    | '/reset-password'
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   ClassRoute: typeof ClassRoute
   HistoryRoute: typeof HistoryRoute
   ProfileRoute: typeof ProfileRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TimetableRoute: typeof TimetableRoute
   VerifyRoute: typeof VerifyRoute
   AttendanceCodeRoute: typeof AttendanceCodeRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/timetable': {
       id: '/timetable'
       path: '/timetable'
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClassRoute: ClassRoute,
   HistoryRoute: HistoryRoute,
   ProfileRoute: ProfileRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TimetableRoute: TimetableRoute,
   VerifyRoute: VerifyRoute,
   AttendanceCodeRoute: AttendanceCodeRoute,
