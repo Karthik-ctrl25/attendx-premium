@@ -336,3 +336,30 @@ export async function removeRow(
 ) {
   await supabase.from(table).delete().eq("id", id);
 }
+
+/* ------------------------------------------------ published class timetable */
+
+/**
+ * Timetable published by an admin for the student's class. When present it is
+ * the source of truth, so students automatically receive updates.
+ */
+export async function pullPublishedTimetable(scope: ClassScope): Promise<ClassSlot[]> {
+  const { data } = await supabase
+    .from("class_timetable_slots")
+    .select("*")
+    .eq("department", scope.department)
+    .eq("semester", scope.semester)
+    .eq("section", scope.section)
+    .eq("published", true);
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    day: r.day,
+    start: r.start_time,
+    end: r.end_time,
+    code: r.code,
+    name: r.name,
+    faculty: r.faculty,
+    room: r.room,
+    session: (r.session === "Lab" ? "Lab" : "Theory") as ClassSlot["session"],
+  }));
+}
