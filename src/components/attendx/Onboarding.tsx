@@ -19,6 +19,7 @@ import { ErpShortcut } from "@/components/attendx/ErpShortcut";
 import { TutorialVideo } from "@/components/attendx/TutorialVideo";
 import { getTimetableFor } from "@/lib/timetable-dataset";
 import { useApp } from "@/lib/store";
+import { useSession } from "@/lib/session";
 import type { ClassSlot, Subject } from "@/lib/types";
 
 const STEPS = ["Details", "Your class", "Tutorial", "Attendance"];
@@ -26,7 +27,7 @@ const LOW_CONFIDENCE = 70;
 
 export function Onboarding() {
   const { saveTimetable, saveSubjects, completeSetup, updateMeta, recordImport } = useApp();
-  const [authed, setAuthed] = useState(false);
+  const session = useSession();
   const [step, setStep] = useState(0);
   const [details, setDetails] = useState<StudentDetails>({
     studentName: "",
@@ -34,6 +35,7 @@ export function Onboarding() {
     email: "",
     photo: "",
   });
+  const [prefilled, setPrefilled] = useState(false);
   const [choice, setChoice] = useState<ClassChoice>({
     department: "",
     semester: "",
@@ -44,7 +46,19 @@ export function Onboarding() {
   const [extract, setExtract] = useState<ExtractResult | null>(null);
   const [saving, setSaving] = useState(false);
 
-  if (!authed) return <AuthScreen onContinue={() => setAuthed(true)} />;
+  if (session === undefined) return <div className="min-h-dvh" />;
+  if (!session) return <AuthScreen />;
+
+  if (session && !prefilled) {
+    const user = session.user;
+    setPrefilled(true);
+    setDetails((d) => ({
+      ...d,
+      studentName: d.studentName || (user.user_metadata?.["full_name"] as string) || "",
+      email: d.email || user.email || "",
+      photo: d.photo || (user.user_metadata?.["avatar_url"] as string) || "",
+    }));
+  }
 
   const classReady = Boolean(choice.department && choice.semester && choice.section);
   const canContinue =
