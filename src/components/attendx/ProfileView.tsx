@@ -146,34 +146,21 @@ function AcademicDetailsCard() {
   );
 }
 
+/** Inline CR row rendered inside the identity card. */
 function CrCard() {
   const { meta } = useApp();
   const { applyForCr } = useClassSpace();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const role: Role = meta.role ?? "student";
   const status = meta.crRequestStatus ?? "none";
 
-  if (role !== "student") {
-    return (
-      <GlassCard className="flex min-w-0 items-center gap-3 p-3.5">
-        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-          <BadgeCheck className="size-4 text-good" />
-        </span>
-        <p className="min-w-0 truncate text-sm font-semibold">You are a {ROLE_LABEL[role]}</p>
-      </GlassCard>
-    );
-  }
-
   return (
-    <GlassCard className="space-y-2.5 p-3.5">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-          <ShieldQuestion className="size-4 text-muted-foreground" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">Class Representative</p>
-          <p className="truncate text-xs text-muted-foreground">
+    <div className="space-y-2">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <ShieldQuestion className="size-3.5 shrink-0 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[12.5px] font-medium">Class Representative</p>
+          <p className="truncate text-[11px] text-muted-foreground">
             {status === "pending"
               ? "Application submitted · pending approval"
               : status === "rejected"
@@ -181,19 +168,30 @@ function CrCard() {
                 : "Apply and an admin will review your request"}
           </p>
         </div>
+        {status === "pending" || open ? null : (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 shrink-0 rounded-xl px-2.5 text-[11.5px]"
+            onClick={() => setOpen(true)}
+          >
+            Apply
+          </Button>
+        )}
       </div>
 
-      {status === "pending" ? null : open ? (
+      {status !== "pending" && open ? (
         <div className="space-y-2">
           <Textarea
-            rows={3}
+            rows={2}
             placeholder="Why should you be the CR?"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="rounded-2xl border-white/70 bg-white/80"
+            className="rounded-xl border-white/70 bg-white/80 text-[12.5px]"
           />
           <Button
-            className="w-full rounded-2xl"
+            size="sm"
+            className="w-full rounded-xl"
             disabled={reason.trim().length < 5}
             onClick={async () => {
               await applyForCr(reason);
@@ -205,12 +203,8 @@ function CrCard() {
             Submit application
           </Button>
         </div>
-      ) : (
-        <Button variant="secondary" className="w-full rounded-2xl" onClick={() => setOpen(true)}>
-          Apply as Class Representative
-        </Button>
-      )}
-    </GlassCard>
+      ) : null}
+    </div>
   );
 }
 
