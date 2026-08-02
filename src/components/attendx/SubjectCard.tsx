@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { memo } from "react";
 import { ChevronRight } from "lucide-react";
 
 import { classesCanMiss, percent, statusOf } from "@/lib/attendance";
@@ -20,7 +21,7 @@ const BAR: Record<string, string> = {
   none: "bg-primary",
 };
 
-export function SubjectCard({ subject, index = 0 }: { subject: Subject; index?: number }) {
+function SubjectCardBase({ subject, index = 0 }: { subject: Subject; index?: number }) {
   const pct = percent(subject.present, subject.total);
   const status = statusOf(pct, subject.total);
   const safe = classesCanMiss(subject.present, subject.total, 75);
@@ -84,3 +85,5 @@ export function SubjectCard({ subject, index = 0 }: { subject: Subject; index?: 
     </motion.div>
   );
 }
+
+export const SubjectCard = memo(SubjectCardBase);
