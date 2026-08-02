@@ -37,7 +37,7 @@ const DEFAULT_META: AppMeta = {
   semester: "",
   section: "",
   email: "",
-  theme: "light",
+  theme: "dark",
   authProvider: "local",
   reminderEnabled: true,
   reminderTime: "19:00",

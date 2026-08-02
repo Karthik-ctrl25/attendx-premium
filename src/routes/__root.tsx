@@ -89,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "AttendX turns your CMR University ERP screenshots into a smart timetable and offline attendance tracker.",
       },
-      { name: "theme-color", content: "#DADDE1" },
+      { name: "theme-color", content: "#1A1D21" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "AttendX" },
       { property: "og:title", content: "AttendX — Smart Attendance & Timetable" },
