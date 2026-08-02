@@ -22,11 +22,11 @@ import { ROLE_LABEL, can, type Role } from "@/lib/roles";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-function Row({ label, value }: { label: string; value?: string }) {
+function InfoRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/60 px-4 py-3">
-      <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
-      <span className="min-w-0 truncate text-sm font-medium">{value || "—"}</span>
+    <div className="flex items-center justify-between gap-4 py-2.5">
+      <span className="text-[13px] text-muted-foreground">{label}</span>
+      <span className="min-w-0 truncate text-[13px] font-medium">{value || "—"}</span>
     </div>
   );
 }
@@ -36,13 +36,14 @@ export function ProfileView() {
   const role: Role = meta.role ?? "student";
 
   return (
-    <div className="w-full min-w-0 space-y-5 pb-2">
+    <div className="mx-auto w-full min-w-0 max-w-2xl space-y-4 pb-2 lg:max-w-3xl">
       <header>
-        <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Profile</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{meta.university}</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Profile</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">{meta.university}</p>
       </header>
 
       <IdentityCard />
+      <AcademicDetailsCard />
 
       <SemesterCard />
 
@@ -65,8 +66,8 @@ export function ProfileView() {
 
       <section>
         <SectionTitle title="About AttendX" />
-        <GlassCard className="flex min-w-0 items-center gap-3 p-5">
-          <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <GlassCard className="flex min-w-0 items-center gap-3 p-3.5">
+          <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
             <Info className="size-4 text-muted-foreground" />
           </span>
           <div className="min-w-0">
@@ -90,6 +91,26 @@ export function ProfileView() {
 function IdentityCard() {
   const { meta } = useApp();
   const role: Role = meta.role ?? "student";
+
+  return (
+    <GlassCard strong className="flex items-center gap-3 p-3.5">
+      <Avatar size={52} className="shrink-0 ring-1 ring-white/70" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-display text-[16px] font-semibold tracking-tight">
+          {meta.studentName || "Student"}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">
+          {meta.department || "Dept"} • Semester {meta.semester || "—"} • Section {meta.section || "—"}
+        </p>
+        <p className="mt-0.5 truncate text-[11px] font-medium text-primary">{ROLE_LABEL[role]}</p>
+      </div>
+    </GlassCard>
+  );
+}
+
+function AcademicDetailsCard() {
+  const { meta } = useApp();
+  const role: Role = meta.role ?? "student";
   const joined = meta.createdAt
     ? new Date(meta.createdAt).toLocaleDateString(undefined, {
         day: "numeric",
@@ -98,32 +119,23 @@ function IdentityCard() {
       })
     : "—";
 
+  const rows = [
+    { label: "USN", value: meta.usn },
+    { label: "Email", value: meta.email },
+    { label: "Department", value: meta.department },
+    { label: "Semester", value: meta.semester },
+    { label: "Section", value: meta.section },
+    { label: "Role", value: ROLE_LABEL[role] },
+    { label: "Joined", value: joined },
+  ];
+
   return (
-    <GlassCard strong className="space-y-2 p-5">
-      <div className="flex min-w-0 items-center gap-3">
-        <Avatar size={56} className="shrink-0 ring-1 ring-white/70" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-[17px] font-semibold tracking-tight">
-            {meta.studentName || "Student"}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">{meta.usn || "USN not set"}</p>
-        </div>
+    <GlassCard className="p-3.5">
+      <div className="divide-y divide-foreground/5">
+        {rows.map((r) => (
+          <InfoRow key={r.label} label={r.label} value={r.value} />
+        ))}
       </div>
-
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Row label="USN" value={meta.usn} />
-        <Row label="Email" value={meta.email} />
-        <Row label="Department" value={meta.department} />
-        <Row label="Semester" value={meta.semester} />
-        <Row label="Section" value={meta.section} />
-        <Row label="Role" value={ROLE_LABEL[role]} />
-        <Row label="Joined" value={joined} />
-      </div>
-
-      <p className="px-1 pt-1 text-[11px] leading-relaxed text-muted-foreground">
-        Your profile is set during onboarding and stays fixed so attendance records remain
-        consistent.
-      </p>
     </GlassCard>
   );
 }
@@ -138,8 +150,8 @@ function CrCard() {
 
   if (role !== "student") {
     return (
-      <GlassCard className="flex min-w-0 items-center gap-3 p-5">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+      <GlassCard className="flex min-w-0 items-center gap-3 p-3.5">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <BadgeCheck className="size-4 text-good" />
         </span>
         <p className="min-w-0 truncate text-sm font-semibold">You are a {ROLE_LABEL[role]}</p>
@@ -148,9 +160,9 @@ function CrCard() {
   }
 
   return (
-    <GlassCard className="space-y-3 p-5">
+    <GlassCard className="space-y-2.5 p-3.5">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <ShieldQuestion className="size-4 text-muted-foreground" />
         </span>
         <div className="min-w-0">
@@ -205,7 +217,7 @@ function AdminConsole() {
       {pending.length ? (
         <GlassCard className="divide-y divide-foreground/5 p-2">
           {pending.map((r) => (
-            <div key={r.id} className="min-w-0 space-y-2 px-3 py-3">
+            <div key={r.id} className="min-w-0 space-y-1.5 px-2.5 py-2.5">
               <p className="truncate text-sm font-semibold">
                 {r.name || "Student"} · {r.usn || "USN"}
               </p>
@@ -231,7 +243,7 @@ function AdminConsole() {
           ))}
         </GlassCard>
       ) : (
-        <GlassCard className="p-6 text-center text-sm text-muted-foreground">
+        <GlassCard className="p-4 text-center text-sm text-muted-foreground">
           No pending requests.
         </GlassCard>
       )}
@@ -247,14 +259,14 @@ function ThemeCard() {
     { key: "dark" as const, label: "Dark", icon: Moon },
   ];
   return (
-    <GlassCard className="grid grid-cols-2 gap-2 p-3">
+    <GlassCard className="grid grid-cols-2 gap-2 p-2.5">
       {options.map((o) => (
         <button
           key={o.key}
           type="button"
           onClick={() => updateMeta({ theme: o.key })}
           className={cn(
-            "flex flex-col items-center gap-2 rounded-2xl px-4 py-4 text-sm font-medium transition-colors",
+            "flex flex-col items-center gap-1.5 rounded-2xl px-3 py-3 text-sm font-medium transition-colors",
             theme === o.key
               ? "bg-ink text-ink-foreground shadow-soft"
               : "bg-white/60 text-foreground hover:bg-white/80",
@@ -275,8 +287,8 @@ function RemindersCard() {
   const { meta, updateMeta } = useApp();
   const enabled = meta.reminderEnabled !== false;
   return (
-    <GlassCard className="space-y-2 p-3">
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/60 px-4 py-3">
+    <GlassCard className="divide-y divide-foreground/5 p-3.5">
+      <div className="flex items-center justify-between gap-3 pb-2.5">
         <div className="min-w-0">
           <p className="text-sm font-medium">Daily reminder</p>
           <p className="text-xs text-muted-foreground">
@@ -308,7 +320,7 @@ function RemindersCard() {
         </button>
       </div>
       {enabled ? (
-        <label className="flex items-center justify-between gap-3 rounded-2xl bg-white/60 px-4 py-3">
+        <label className="flex items-center justify-between gap-3 pt-2.5">
           <span className="text-sm font-medium">Reminder time</span>
           <input
             type="time"
@@ -334,9 +346,9 @@ function DangerZone() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="glass glass-hover flex w-full min-w-0 items-center gap-3 rounded-3xl px-5 py-4 text-left"
+        className="glass glass-hover flex w-full min-w-0 items-center gap-3 rounded-3xl px-4 py-3 text-left"
       >
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <TriangleAlert className="size-4 text-bad" />
         </span>
         <span className="min-w-0 flex-1">
@@ -350,9 +362,9 @@ function DangerZone() {
   }
 
   return (
-    <GlassCard className="space-y-3 p-5 ring-1 ring-bad/30">
+    <GlassCard className="space-y-2.5 p-3.5 ring-1 ring-bad/30">
       <div className="flex min-w-0 items-start gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <TriangleAlert className="size-4 text-bad" />
         </span>
         <p className="min-w-0 flex-1 text-sm text-muted-foreground">
