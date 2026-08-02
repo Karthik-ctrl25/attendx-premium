@@ -21,6 +21,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
 import { Route as AttendanceCodeRouteImport } from './routes/attendance.$code'
 import { Route as ProfileIndexRouteImport } from './routes/profile.index'
+import { Route as ProfileAcademicRouteImport } from './routes/profile.academic'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +83,11 @@ const ProfileIndexRoute = ProfileIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ProfileRoute,
 } as any)
+const ProfileAcademicRoute = ProfileAcademicRouteImport.update({
+  id: '/academic',
+  path: '/academic',
+  getParentRoute: () => ProfileRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
+  '/profile/academic': typeof ProfileAcademicRoute
   '/attendance/': typeof AttendanceIndexRoute
   '/profile/': typeof ProfileIndexRoute
 }
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
+  '/profile/academic': typeof ProfileAcademicRoute
   '/attendance': typeof AttendanceIndexRoute
   '/profile': typeof ProfileIndexRoute
 }
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
   '/attendance/$code': typeof AttendanceCodeRoute
+  '/profile/academic': typeof ProfileAcademicRoute
   '/attendance/': typeof AttendanceIndexRoute
   '/profile/': typeof ProfileIndexRoute
 }
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
+    | '/profile/academic'
     | '/attendance/'
     | '/profile/'
   fileRoutesByTo: FileRoutesByTo
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
+    | '/profile/academic'
     | '/attendance'
     | '/profile'
   id:
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/timetable'
     | '/verify'
     | '/attendance/$code'
+    | '/profile/academic'
     | '/attendance/'
     | '/profile/'
   fileRoutesById: FileRoutesById
@@ -269,14 +281,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof ProfileRoute
     }
+    '/profile/academic': {
+      id: '/profile/academic'
+      path: '/academic'
+      fullPath: '/profile/academic'
+      preLoaderRoute: typeof ProfileAcademicRouteImport
+      parentRoute: typeof ProfileRoute
+    }
   }
 }
 
 interface ProfileRouteChildren {
+  ProfileAcademicRoute: typeof ProfileAcademicRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
 }
 
 const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileAcademicRoute: ProfileAcademicRoute,
   ProfileIndexRoute: ProfileIndexRoute,
 }
 
