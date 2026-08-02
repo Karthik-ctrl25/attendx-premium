@@ -4,6 +4,7 @@
  * network or the session is unavailable the app keeps working offline.
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 import type {
   Announcement,
@@ -183,7 +184,7 @@ export async function pushPrivateData(userId: string, snap: CloudSnapshot) {
           status: h.action,
           ts: new Date(h.ts).toISOString(),
           marked_on: new Date(h.ts).toISOString().slice(0, 10),
-          payload: h as unknown as Record<string, unknown>,
+          payload: h as unknown as Json,
         })),
         { onConflict: "user_id,local_id" },
       ),
@@ -197,7 +198,7 @@ export async function pushPrivateData(userId: string, snap: CloudSnapshot) {
           local_id: i.id,
           ts: new Date(i.ts).toISOString(),
           fingerprint: String((i as { fileHash?: string }).fileHash ?? ""),
-          payload: i as unknown as Record<string, unknown>,
+          payload: i as unknown as Json,
         })),
         { onConflict: "user_id,local_id" },
       ),
