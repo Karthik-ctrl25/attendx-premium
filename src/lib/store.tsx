@@ -9,6 +9,13 @@ import {
 } from "react";
 
 import { db, DEFAULT_META } from "./db";
+import {
+  pullPrivateData,
+  pullProfile,
+  pushPrivateData,
+  pushProfile,
+} from "./cloud-sync";
+import { useSession } from "./session";
 import type {
   AppMeta,
   AttendanceAction,
@@ -71,6 +78,65 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  /* ------------------------------------------------------- cloud sync ---
+   * IndexedDB stays the offline cache. When a session exists we hydrate from
+   * the backend first (remote wins for an already-set-up account), then push
+   * local changes back on every mutation.
+   */
+  const session = useSession();
+  const userId = session?.user.id ?? null;
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (!ready || !userId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [{ patch, hasProfile }, remote] = await Promise.all([
+          pullProfile(userId),
+          pullPrivateData(userId),
+        ]);
+        if (cancelled) return;
+        if (hasProfile && patch.setupComplete) {
+          const nextMeta = { ...DEFAULT_META, ...patch } as AppMeta;
+          setMeta(nextMeta);
+          await db.putMeta(nextMeta);
+          if (remote.subjects.length) {
+            setSubjects(remote.subjects);
+            await db.putSubjects(remote.subjects);
+          }
+          if (remote.timetable.length) {
+            setTimetable(remote.timetable);
+            await db.replaceTimetable(remote.timetable);
+          }
+          if (remote.history.length) {
+            const merged = remote.history.sort((a, b) => b.ts - a.ts);
+            setHistory(merged);
+            await Promise.all(merged.map((h) => db.putHistory(h)));
+          }
+          if (remote.imports.length) setImports(remote.imports);
+        }
+      } catch {
+        /* offline — keep working from IndexedDB */
+      } finally {
+        if (!cancelled) setHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, userId]);
+
+  useEffect(() => {
+    if (!userId || !hydrated || !meta.setupComplete) return;
+    const t = setTimeout(() => {
+      pushProfile(userId, meta)
+        .then(() => pushPrivateData(userId, { subjects, timetable, history, imports }))
+        .catch(() => undefined);
+    }, 800);
+    return () => clearTimeout(t);
+  }, [userId, hydrated, meta, subjects, timetable, history, imports]);
 
   const saveSubjects = useCallback(async (next: Subject[]) => {
     setSubjects(next);
