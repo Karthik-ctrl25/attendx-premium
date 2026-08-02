@@ -12,8 +12,10 @@ import { db, DEFAULT_META } from "./db";
 import {
   pullPrivateData,
   pullProfile,
+  pullPublishedTimetable,
   pushPrivateData,
   pushProfile,
+  scopeOf,
 } from "./cloud-sync";
 import { useSession } from "./session";
 import type {
