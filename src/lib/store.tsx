@@ -112,6 +112,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             setTimetable(remote.timetable);
             await db.replaceTimetable(remote.timetable);
           }
+          // An admin-published class timetable always wins over the local one.
+          const scope = scopeOf(nextMeta);
+          if (scope) {
+            const published = await pullPublishedTimetable(scope).catch(() => []);
+            if (published.length && !cancelled) {
+              setTimetable(published);
+              await db.replaceTimetable(published);
+            }
+          }
           if (remote.history.length) {
             const merged = remote.history.sort((a, b) => b.ts - a.ts);
             setHistory(merged);
