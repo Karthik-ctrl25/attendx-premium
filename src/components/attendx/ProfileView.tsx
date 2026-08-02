@@ -217,7 +217,7 @@ function AdminConsole() {
       {pending.length ? (
         <GlassCard className="divide-y divide-foreground/5 p-2">
           {pending.map((r) => (
-            <div key={r.id} className="min-w-0 space-y-2 px-3 py-3">
+            <div key={r.id} className="min-w-0 space-y-1.5 px-2.5 py-2.5">
               <p className="truncate text-sm font-semibold">
                 {r.name || "Student"} · {r.usn || "USN"}
               </p>
@@ -243,7 +243,7 @@ function AdminConsole() {
           ))}
         </GlassCard>
       ) : (
-        <GlassCard className="p-6 text-center text-sm text-muted-foreground">
+        <GlassCard className="p-4 text-center text-sm text-muted-foreground">
           No pending requests.
         </GlassCard>
       )}
