@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Phone, Sparkles } from "lucide-react";
+import { Loader2, Phone, Sparkles } from "lucide-react";
+
+import { lovable } from "@/integrations/lovable/index";
 
 /** Google "G" mark — inline so the screen works fully offline. */
 function GoogleMark() {
@@ -25,7 +28,26 @@ function GoogleMark() {
   );
 }
 
-export function AuthScreen({ onContinue }: { onContinue: () => void }) {
+export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const signIn = async () => {
+    setBusy(true);
+    setError("");
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setError("Could not sign in with Google. Please try again.");
+      setBusy(false);
+      return;
+    }
+    if (result.redirected) return;
+    onContinue?.();
+    setBusy(false);
+  };
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-6 py-16 text-center">
       <motion.div
@@ -63,10 +85,11 @@ export function AuthScreen({ onContinue }: { onContinue: () => void }) {
         <motion.button
           type="button"
           whileTap={{ scale: 0.98 }}
-          onClick={onContinue}
+          onClick={signIn}
+          disabled={busy}
           className="glass-strong flex h-14 w-full items-center justify-center gap-3 rounded-[22px] text-[15px] font-medium transition-transform duration-300 hover:-translate-y-0.5"
         >
-          <GoogleMark />
+          {busy ? <Loader2 className="size-5 animate-spin" /> : <GoogleMark />}
           Continue with Google
         </motion.button>
 
@@ -82,6 +105,10 @@ export function AuthScreen({ onContinue }: { onContinue: () => void }) {
           </span>
         </button>
       </motion.div>
+
+      {error ? (
+        <p className="mt-4 text-[13px] text-destructive">{error}</p>
+      ) : null}
 
       <motion.p
         initial={{ opacity: 0 }}
