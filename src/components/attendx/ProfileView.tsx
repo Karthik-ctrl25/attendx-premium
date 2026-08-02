@@ -36,13 +36,14 @@ export function ProfileView() {
   const role: Role = meta.role ?? "student";
 
   return (
-    <div className="w-full min-w-0 space-y-5 pb-2">
+    <div className="mx-auto w-full min-w-0 max-w-2xl space-y-4 pb-2 lg:max-w-3xl">
       <header>
-        <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Profile</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{meta.university}</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Profile</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">{meta.university}</p>
       </header>
 
       <IdentityCard />
+      <AcademicDetailsCard />
 
       <SemesterCard />
 
@@ -65,8 +66,8 @@ export function ProfileView() {
 
       <section>
         <SectionTitle title="About AttendX" />
-        <GlassCard className="flex min-w-0 items-center gap-3 p-5">
-          <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <GlassCard className="flex min-w-0 items-center gap-3 p-3.5">
+          <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
             <Info className="size-4 text-muted-foreground" />
           </span>
           <div className="min-w-0">
