@@ -89,84 +89,43 @@ export function ProfileView() {
   );
 }
 
-/** Academic details are read-only after setup. Only photo and name can change. */
+/** Profile is captured during onboarding and is read-only afterwards. */
 function IdentityCard() {
-  const { meta, updateMeta } = useApp();
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(meta.studentName);
-  const photoRef = useRef<HTMLInputElement>(null);
+  const { meta } = useApp();
+  const role: Role = meta.role ?? "student";
+  const joined = meta.createdAt
+    ? new Date(meta.createdAt).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
 
   return (
     <GlassCard strong className="space-y-2 p-5">
       <div className="flex min-w-0 items-center gap-3">
         <Avatar size={56} className="shrink-0 ring-1 ring-white/70" />
         <div className="min-w-0 flex-1">
-          {editing ? (
-            <Input
-              className="h-9 rounded-xl border-white/70 bg-white/80 text-sm shadow-none"
-              placeholder="Display name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          ) : (
-            <>
-              <p className="truncate font-display text-[17px] font-semibold tracking-tight">
-                {meta.studentName || "Add your name"}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">{meta.usn || "USN not set"}</p>
-            </>
-          )}
+          <p className="truncate font-display text-[17px] font-semibold tracking-tight">
+            {meta.studentName || "Student"}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">{meta.usn || "USN not set"}</p>
         </div>
-        {editing ? (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="shrink-0 rounded-xl"
-            onClick={() => photoRef.current?.click()}
-          >
-            <Upload className="size-4" />
-          </Button>
-        ) : null}
       </div>
 
-      <input
-        ref={photoRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = () => void updateMeta({ photo: String(reader.result) });
-          reader.readAsDataURL(file);
-        }}
-      />
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Row label="USN" value={meta.usn} />
+        <Row label="Email" value={meta.email} />
+        <Row label="Department" value={meta.department} />
+        <Row label="Semester" value={meta.semester} />
+        <Row label="Section" value={meta.section} />
+        <Row label="Role" value={ROLE_LABEL[role]} />
+        <Row label="Joined" value={joined} />
+      </div>
 
-      <Row label="USN" value={meta.usn} />
-      <Row label="Email" value={meta.email} />
-      <Row label="Department" value={meta.department} />
-      <Row label="Semester" value={meta.semester} />
-      <Row label="Section" value={meta.section} />
-
-      {editing ? (
-        <Button
-          className="w-full rounded-2xl"
-          onClick={async () => {
-            await updateMeta({ studentName: name.trim() });
-            setEditing(false);
-            toast.success("Profile updated");
-          }}
-        >
-          <Save className="size-4" /> Save
-        </Button>
-      ) : (
-        <Button variant="secondary" className="w-full rounded-2xl" onClick={() => setEditing(true)}>
-          <Pencil className="size-4" /> Edit photo & name
-        </Button>
-      )}
       <p className="px-1 pt-1 text-[11px] leading-relaxed text-muted-foreground">
-        Academic details stay fixed so your attendance records remain consistent.
+        Your profile is set during onboarding and stays fixed so attendance records remain
+        consistent.
       </p>
     </GlassCard>
   );
