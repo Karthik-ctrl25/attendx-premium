@@ -40,7 +40,9 @@ function AdminPage() {
   if (isLoading) {
     return (
       <div className="mx-auto w-full max-w-[700px]">
-        <GlassCard className="h-24 animate-pulse" />
+        <GlassCard className="h-24 animate-pulse">
+          <span className="sr-only">Loading</span>
+        </GlassCard>
       </div>
     );
   }
