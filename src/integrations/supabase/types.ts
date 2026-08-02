@@ -14,16 +14,431 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      announcements: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          department: string
+          id: string
+          pinned: boolean
+          section: string
+          semester: string
+          title: string
+        }
+        Insert: {
+          author_id: string
+          body?: string
+          created_at?: string
+          department: string
+          id?: string
+          pinned?: boolean
+          section: string
+          semester: string
+          title?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          department?: string
+          id?: string
+          pinned?: boolean
+          section?: string
+          semester?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      attendance_history: {
+        Row: {
+          id: string
+          local_id: string
+          marked_on: string
+          payload: Json
+          status: string
+          subject_code: string
+          ts: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          local_id: string
+          marked_on?: string
+          payload?: Json
+          status?: string
+          subject_code?: string
+          ts?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          local_id?: string
+          marked_on?: string
+          payload?: Json
+          status?: string
+          subject_code?: string
+          ts?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      attendance_imports: {
+        Row: {
+          fingerprint: string
+          id: string
+          local_id: string
+          payload: Json
+          ts: string
+          user_id: string
+        }
+        Insert: {
+          fingerprint?: string
+          id?: string
+          local_id: string
+          payload?: Json
+          ts?: string
+          user_id: string
+        }
+        Update: {
+          fingerprint?: string
+          id?: string
+          local_id?: string
+          payload?: Json
+          ts?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cr_requests: {
+        Row: {
+          created_at: string
+          department: string
+          id: string
+          name: string
+          reason: string
+          section: string
+          semester: string
+          status: string
+          user_id: string
+          usn: string
+        }
+        Insert: {
+          created_at?: string
+          department: string
+          id?: string
+          name?: string
+          reason?: string
+          section: string
+          semester: string
+          status?: string
+          user_id: string
+          usn?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          id?: string
+          name?: string
+          reason?: string
+          section?: string
+          semester?: string
+          status?: string
+          user_id?: string
+          usn?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          author_id: string
+          created_at: string
+          date: string | null
+          department: string
+          id: string
+          kind: string
+          notes: string
+          section: string
+          semester: string
+          title: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          date?: string | null
+          department: string
+          id?: string
+          kind?: string
+          notes?: string
+          section: string
+          semester: string
+          title?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          date?: string | null
+          department?: string
+          id?: string
+          kind?: string
+          notes?: string
+          section?: string
+          semester?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      poll_votes: {
+        Row: {
+          choice: string
+          created_at: string
+          id: string
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          choice: string
+          created_at?: string
+          id?: string
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          choice?: string
+          created_at?: string
+          id?: string
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          author_id: string
+          created_at: string
+          department: string
+          id: string
+          pinned: boolean
+          question: string
+          section: string
+          semester: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          department: string
+          id?: string
+          pinned?: boolean
+          question?: string
+          section: string
+          semester: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          department?: string
+          id?: string
+          pinned?: boolean
+          question?: string
+          section?: string
+          semester?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          department: string
+          email: string
+          id: string
+          last_verified_at: string | null
+          photo: string | null
+          reminder_enabled: boolean
+          reminder_time: string
+          section: string
+          semester: string
+          setup_complete: boolean
+          student_name: string
+          theme: string
+          university: string
+          updated_at: string
+          usn: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string
+          email?: string
+          id: string
+          last_verified_at?: string | null
+          photo?: string | null
+          reminder_enabled?: boolean
+          reminder_time?: string
+          section?: string
+          semester?: string
+          setup_complete?: boolean
+          student_name?: string
+          theme?: string
+          university?: string
+          updated_at?: string
+          usn?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          email?: string
+          id?: string
+          last_verified_at?: string | null
+          photo?: string | null
+          reminder_enabled?: boolean
+          reminder_time?: string
+          section?: string
+          semester?: string
+          setup_complete?: boolean
+          student_name?: string
+          theme?: string
+          university?: string
+          updated_at?: string
+          usn?: string
+        }
+        Relationships: []
+      }
+      roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          absent: number
+          code: string
+          created_at: string
+          faculty: string
+          id: string
+          name: string
+          present: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          absent?: number
+          code: string
+          created_at?: string
+          faculty?: string
+          id?: string
+          name?: string
+          present?: number
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          absent?: number
+          code?: string
+          created_at?: string
+          faculty?: string
+          id?: string
+          name?: string
+          present?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      timetable_slots: {
+        Row: {
+          code: string
+          day: number
+          end_time: string
+          faculty: string
+          id: string
+          local_id: string
+          name: string
+          room: string
+          session: string
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          code?: string
+          day?: number
+          end_time?: string
+          faculty?: string
+          id?: string
+          local_id: string
+          name?: string
+          room?: string
+          session?: string
+          start_time?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          day?: number
+          end_time?: string
+          faculty?: string
+          id?: string
+          local_id?: string
+          name?: string
+          room?: string
+          session?: string
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      in_my_class: {
+        Args: { _department: string; _section: string; _semester: string }
+        Returns: boolean
+      }
+      my_class: {
+        Args: never
+        Returns: {
+          department: string
+          section: string
+          semester: string
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "cr" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +565,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "cr", "admin"],
+    },
   },
 } as const
