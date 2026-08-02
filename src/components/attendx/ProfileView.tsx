@@ -39,7 +39,6 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
 
 export function ProfileView() {
   const { meta } = useApp();
-  const role: Role = meta.role ?? "student";
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-[700px] space-y-3 pb-2">
@@ -57,7 +56,8 @@ export function ProfileView() {
 
       <SemesterCard />
 
-      {can(role, "cr.approve") ? <AdminConsole /> : null}
+      <AccountCard />
+
 
       <section>
         <SectionTitle title="Preferences" />
