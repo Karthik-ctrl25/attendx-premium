@@ -103,6 +103,31 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Pull the shared class space (RLS scopes it to the same dept/sem/section).
+  useEffect(() => {
+    if (!userId || !scopeKey) return;
+    let cancelled = false;
+    const [department, semester, section] = scopeKey.split("|");
+    pullClassSpace(userId, { department: department!, semester: semester!, section: section! })
+      .then((snap) => {
+        if (cancelled) return;
+        setAnnouncements(snap.announcements);
+        setPolls(snap.polls);
+        setEvents(snap.events);
+        setCrRequests(snap.crRequests);
+        void Promise.all([
+          ...snap.announcements.map((a) => db.putClassRecord("announcements", a)),
+          ...snap.polls.map((x) => db.putClassRecord("polls", x)),
+          ...snap.events.map((e) => db.putClassRecord("events", e)),
+          ...snap.crRequests.map((r) => db.putClassRecord("crRequests", r)),
+        ]).catch(() => undefined);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, scopeKey]);
+
   const sortPolls = (list: Poll[]) =>
     [...list].sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.ts - a.ts);
 
@@ -141,8 +166,9 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       };
       setAnnouncements((prev) => sortAnnouncements([entry, ...prev]));
       await db.putClassRecord("announcements", entry);
+      if (userId && scope) fire(pushAnnouncement(userId, scope, entry));
     },
-    [meta.studentName, role],
+    [meta.studentName, role, scope, userId],
   );
 
   const togglePin = useCallback(
@@ -162,6 +188,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       assertCan(role, "announcement.delete");
       setAnnouncements((prev) => prev.filter((a) => a.id !== id));
       await db.deleteClassRecord("announcements", id);
+      fire(removeRow("announcements", id));
     },
     [role],
   );
@@ -182,6 +209,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       if (entry.options.length < 2) return;
       setPolls((prev) => sortPolls([entry, ...prev]));
       await db.putClassRecord("polls", entry);
+      if (userId && scope) fire(pushPoll(userId, scope, entry));
     },
     [role],
   );
@@ -200,8 +228,10 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       };
       setPolls((prev) => sortPolls(prev.map((p) => (p.id === pollId ? next : p))));
       await db.putClassRecord("polls", next);
+      const choice = current.options.find((o) => o.id === optionId)?.label;
+      if (userId && choice) fire(pushVote(userId, pollId, choice));
     },
-    [polls, role],
+    [polls, role, userId],
   );
 
   const togglePollPin = useCallback(
@@ -213,7 +243,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       setPolls((prev) => sortPolls(prev.map((p) => (p.id === id ? next : p))));
       await db.putClassRecord("polls", next);
     },
-    [polls, role],
+    [polls, role, userId],
   );
 
   const deletePoll = useCallback(
@@ -221,6 +251,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       assertCan(role, "poll.delete");
       setPolls((prev) => prev.filter((p) => p.id !== id));
       await db.deleteClassRecord("polls", id);
+      fire(removeRow("polls", id));
     },
     [role],
   );
@@ -231,6 +262,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       const entry: ClassEvent = { id: uid("evt"), ...input, title: input.title.trim() };
       setEvents((prev) => [...prev, entry].sort((a, b) => a.date.localeCompare(b.date)));
       await db.putClassRecord("events", entry);
+      if (userId && scope) fire(pushEvent(userId, scope, entry));
     },
     [role],
   );
@@ -240,6 +272,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       assertCan(role, "event.manage");
       setEvents((prev) => prev.filter((e) => e.id !== id));
       await db.deleteClassRecord("events", id);
+      fire(removeRow("events", id));
     },
     [role],
   );
@@ -276,9 +309,10 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       };
       setCrRequests((prev) => [entry, ...prev]);
       await db.putClassRecord("crRequests", entry);
+      if (userId && scope) fire(pushCrRequest(userId, scope, entry));
       await updateMeta({ crRequestStatus: "pending" });
     },
-    [meta.studentName, meta.usn, role, updateMeta],
+    [meta.studentName, meta.usn, role, updateMeta, scope, userId],
   );
 
   /** Admin-only review. A student can never grant themselves the CR role. */
@@ -290,6 +324,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
       const next: CrRequest = { ...current, status: approve ? "approved" : "rejected" };
       setCrRequests((prev) => prev.map((r) => (r.id === id ? next : r)));
       await db.putClassRecord("crRequests", next);
+      if (userId && scope) fire(pushCrRequest(userId, scope, next));
       if (current.usn && current.usn === meta.usn) {
         await updateMeta({
           crRequestStatus: next.status,
@@ -297,7 +332,7 @@ export function ClassSpaceProvider({ children }: { children: ReactNode }) {
         });
       }
     },
-    [crRequests, meta.role, meta.usn, role, updateMeta],
+    [crRequests, meta.role, meta.usn, role, updateMeta, scope, userId],
   );
 
   const value = useMemo<ClassState>(
