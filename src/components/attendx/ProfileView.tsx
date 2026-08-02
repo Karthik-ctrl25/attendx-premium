@@ -150,8 +150,8 @@ function CrCard() {
 
   if (role !== "student") {
     return (
-      <GlassCard className="flex min-w-0 items-center gap-3 p-5">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+      <GlassCard className="flex min-w-0 items-center gap-3 p-3.5">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <BadgeCheck className="size-4 text-good" />
         </span>
         <p className="min-w-0 truncate text-sm font-semibold">You are a {ROLE_LABEL[role]}</p>
@@ -160,9 +160,9 @@ function CrCard() {
   }
 
   return (
-    <GlassCard className="space-y-3 p-5">
+    <GlassCard className="space-y-2.5 p-3.5">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <ShieldQuestion className="size-4 text-muted-foreground" />
         </span>
         <div className="min-w-0">
