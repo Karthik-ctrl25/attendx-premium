@@ -259,24 +259,21 @@ function ThemeCard() {
     { key: "dark" as const, label: "Dark", icon: Moon },
   ];
   return (
-    <GlassCard className="grid grid-cols-2 gap-2 p-2.5">
+    <GlassCard className="grid grid-cols-2 gap-1.5 p-1.5">
       {options.map((o) => (
         <button
           key={o.key}
           type="button"
           onClick={() => updateMeta({ theme: o.key })}
           className={cn(
-            "flex flex-col items-center gap-1.5 rounded-2xl px-3 py-3 text-sm font-medium transition-colors",
+            "flex items-center justify-center gap-2 rounded-2xl px-3 py-2 text-[13px] font-medium transition-colors",
             theme === o.key
               ? "bg-ink text-ink-foreground shadow-soft"
               : "bg-white/60 text-foreground hover:bg-white/80",
           )}
         >
-          <o.icon className="size-5" />
+          <o.icon className="size-4" />
           {o.label}
-          {o.key === "light" ? (
-            <span className="text-[10px] font-normal opacity-70">Default</span>
-          ) : null}
         </button>
       ))}
     </GlassCard>
