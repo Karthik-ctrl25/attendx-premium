@@ -22,11 +22,11 @@ import { ROLE_LABEL, can, type Role } from "@/lib/roles";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-function Row({ label, value }: { label: string; value?: string }) {
+function InfoRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/60 px-4 py-3">
-      <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
-      <span className="min-w-0 truncate text-sm font-medium">{value || "—"}</span>
+    <div className="flex items-center justify-between gap-4 py-2.5">
+      <span className="text-[13px] text-muted-foreground">{label}</span>
+      <span className="min-w-0 truncate text-[13px] font-medium">{value || "—"}</span>
     </div>
   );
 }
