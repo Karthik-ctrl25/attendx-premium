@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { CrCard } from "@/components/attendx/CrCard";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +111,7 @@ function ClassPage() {
         </p>
       </header>
 
+      <CrCard />
       <Announcements role={role} />
       <Polls role={role} />
       <Upcoming role={role} />
