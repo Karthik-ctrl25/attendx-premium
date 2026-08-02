@@ -287,8 +287,8 @@ function RemindersCard() {
   const { meta, updateMeta } = useApp();
   const enabled = meta.reminderEnabled !== false;
   return (
-    <GlassCard className="space-y-2 p-3">
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/60 px-4 py-3">
+    <GlassCard className="divide-y divide-foreground/5 p-3.5">
+      <div className="flex items-center justify-between gap-3 pb-2.5">
         <div className="min-w-0">
           <p className="text-sm font-medium">Daily reminder</p>
           <p className="text-xs text-muted-foreground">
@@ -320,7 +320,7 @@ function RemindersCard() {
         </button>
       </div>
       {enabled ? (
-        <label className="flex items-center justify-between gap-3 rounded-2xl bg-white/60 px-4 py-3">
+        <label className="flex items-center justify-between gap-3 pt-2.5">
           <span className="text-sm font-medium">Reminder time</span>
           <input
             type="time"
