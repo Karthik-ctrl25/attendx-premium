@@ -110,6 +110,60 @@ export type Database = {
         }
         Relationships: []
       }
+      class_timetable_slots: {
+        Row: {
+          code: string
+          created_at: string
+          day: number
+          department: string
+          end_time: string
+          faculty: string
+          id: string
+          name: string
+          published: boolean
+          room: string
+          section: string
+          semester: string
+          session: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string
+          created_at?: string
+          day?: number
+          department: string
+          end_time?: string
+          faculty?: string
+          id?: string
+          name?: string
+          published?: boolean
+          room?: string
+          section: string
+          semester: string
+          session?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          day?: number
+          department?: string
+          end_time?: string
+          faculty?: string
+          id?: string
+          name?: string
+          published?: boolean
+          room?: string
+          section?: string
+          semester?: string
+          session?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cr_requests: {
         Row: {
           created_at: string
@@ -223,6 +277,7 @@ export type Database = {
       polls: {
         Row: {
           author_id: string
+          closed: boolean
           created_at: string
           department: string
           id: string
@@ -233,6 +288,7 @@ export type Database = {
         }
         Insert: {
           author_id: string
+          closed?: boolean
           created_at?: string
           department: string
           id?: string
@@ -243,6 +299,7 @@ export type Database = {
         }
         Update: {
           author_id?: string
+          closed?: boolean
           created_at?: string
           department?: string
           id?: string
@@ -257,6 +314,7 @@ export type Database = {
         Row: {
           created_at: string
           department: string
+          disabled: boolean
           email: string
           id: string
           last_verified_at: string | null
@@ -275,6 +333,7 @@ export type Database = {
         Insert: {
           created_at?: string
           department?: string
+          disabled?: boolean
           email?: string
           id: string
           last_verified_at?: string | null
@@ -293,6 +352,7 @@ export type Database = {
         Update: {
           created_at?: string
           department?: string
+          disabled?: boolean
           email?: string
           id?: string
           last_verified_at?: string | null
