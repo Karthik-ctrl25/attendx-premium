@@ -55,7 +55,7 @@ export function Onboarding() {
     setDetails((d) => ({
       ...d,
       studentName: d.studentName || (user.user_metadata?.["full_name"] as string) || "",
-      email: d.email || user.email || "",
+      email: user.email || d.email,
       photo: d.photo || (user.user_metadata?.["avatar_url"] as string) || "",
     }));
   }
@@ -105,7 +105,8 @@ export function Onboarding() {
         department: choice.department,
         semester: choice.semester,
         section: choice.section,
-        authProvider: "google",
+        authProvider:
+          (session.user.app_metadata?.["provider"] as string) === "google" ? "google" : "email",
         role: "student",
         crRequestStatus: "none",
         semesterStartedAt: Date.now(),

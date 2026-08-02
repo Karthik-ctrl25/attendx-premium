@@ -88,14 +88,13 @@ export function DetailsStep({
           value={value.usn}
           onChange={(e) => set({ usn: e.target.value.toUpperCase().replace(/\s+/g, "") })}
         />
-        <Input
-          className={field}
-          type="email"
-          placeholder="Email (optional)"
-          value={value.email}
-          onChange={(e) => set({ email: e.target.value })}
-        />
+        {/* Email comes from the signed-in account and cannot be edited. */}
+        <div className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-white/70 bg-white/50 px-3">
+          <span className="text-[13px] text-muted-foreground">Email</span>
+          <span className="min-w-0 truncate text-[13px] font-medium">{value.email || "—"}</span>
+        </div>
       </div>
+
     </div>
   );
 }

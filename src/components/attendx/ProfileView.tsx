@@ -1,8 +1,12 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import {
-  
   Info,
+  LogOut,
   Moon,
+  ShieldCheck,
   ShieldQuestion,
   Sun,
   TriangleAlert,
@@ -16,9 +20,11 @@ import { SemesterCard } from "@/components/attendx/SemesterCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { getMyRole } from "@/lib/auth.functions";
 import { useClassSpace } from "@/lib/class-store";
 import { DEFAULT_REMINDER_TIME, requestNotificationPermission } from "@/lib/reminders";
-import { ROLE_LABEL, can, type Role } from "@/lib/roles";
+import { ROLE_LABEL, type Role } from "@/lib/roles";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +39,6 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
 
 export function ProfileView() {
   const { meta } = useApp();
-  const role: Role = meta.role ?? "student";
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-[700px] space-y-3 pb-2">
@@ -51,7 +56,8 @@ export function ProfileView() {
 
       <SemesterCard />
 
-      {can(role, "cr.approve") ? <AdminConsole /> : null}
+      <AccountCard />
+
 
       <section>
         <SectionTitle title="Preferences" />
@@ -208,48 +214,64 @@ function CrCard() {
   );
 }
 
-function AdminConsole() {
-  const { crRequests, reviewCrRequest } = useClassSpace();
-  const pending = crRequests.filter((r) => r.status === "pending");
+/**
+ * Session & role. The role shown here is resolved on the server from the
+ * roles table — the client never grants itself admin access.
+ */
+function AccountCard() {
+  const fetchRole = useServerFn(getMyRole);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { data } = useQuery({ queryKey: ["my-role"], queryFn: () => fetchRole({}) });
+  const serverRole: Role = data?.role ?? "student";
+
+  const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/", replace: true });
+  };
+
   return (
     <section>
-      <SectionTitle title="Admin · CR requests" subtitle={`${pending.length} pending`} />
-      {pending.length ? (
-        <GlassCard className="divide-y divide-foreground/5 p-2">
-          {pending.map((r) => (
-            <div key={r.id} className="min-w-0 space-y-1.5 px-2.5 py-2.5">
-              <p className="truncate text-sm font-semibold">
-                {r.name || "Student"} · {r.usn || "USN"}
-              </p>
-              <p className="text-xs text-muted-foreground">{r.reason}</p>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={() => void reviewCrRequest(r.id, true)}
-                >
-                  Approve
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="rounded-xl"
-                  onClick={() => void reviewCrRequest(r.id, false)}
-                >
-                  Reject
-                </Button>
-              </div>
-            </div>
-          ))}
-        </GlassCard>
-      ) : (
-        <GlassCard className="p-4 text-center text-sm text-muted-foreground">
-          No pending requests.
-        </GlassCard>
-      )}
+      <SectionTitle title="Account" subtitle={ROLE_LABEL[serverRole]} />
+      <GlassCard className="divide-y divide-foreground/5 px-3 py-1">
+        {serverRole === "admin" ? (
+          <Link
+            to="/admin"
+            className="flex min-w-0 items-center gap-2.5 py-2.5 text-left"
+          >
+            <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+              <ShieldCheck className="size-3.5 text-good" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold">Admin console</span>
+              <span className="block truncate text-[11px] text-muted-foreground">
+                Review CR requests
+              </span>
+            </span>
+          </Link>
+        ) : null}
+        <button
+          type="button"
+          onClick={signOut}
+          className="flex w-full min-w-0 items-center gap-2.5 py-2.5 text-left"
+        >
+          <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+            <LogOut className="size-3.5 text-muted-foreground" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-semibold">Sign out</span>
+            <span className="block truncate text-[11px] text-muted-foreground">
+              You will stay signed in on this device until you sign out
+            </span>
+          </span>
+        </button>
+      </GlassCard>
     </section>
   );
 }
+
 
 function ThemeCard() {
   const { meta, updateMeta } = useApp();

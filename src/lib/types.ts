@@ -122,7 +122,7 @@ export interface AppMeta {
   /** UI theme — light is the default. */
   theme?: "light" | "dark";
   /** Reserved for real auth (Google / Supabase) — "local" until then. */
-  authProvider?: "local" | "google" | "phone";
+  authProvider?: "local" | "google" | "email" | "phone";
   /** Daily "did you attend?" reminder. */
   reminderEnabled?: boolean;
   /** 24h "HH:MM" — default 19:00. */
