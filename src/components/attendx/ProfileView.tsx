@@ -346,9 +346,9 @@ function DangerZone() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="glass glass-hover flex w-full min-w-0 items-center gap-3 rounded-3xl px-5 py-4 text-left"
+        className="glass glass-hover flex w-full min-w-0 items-center gap-3 rounded-3xl px-4 py-3 text-left"
       >
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <TriangleAlert className="size-4 text-bad" />
         </span>
         <span className="min-w-0 flex-1">
@@ -362,9 +362,9 @@ function DangerZone() {
   }
 
   return (
-    <GlassCard className="space-y-3 p-5 ring-1 ring-bad/30">
+    <GlassCard className="space-y-2.5 p-3.5 ring-1 ring-bad/30">
       <div className="flex min-w-0 items-start gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+        <span className="grid size-8 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <TriangleAlert className="size-4 text-bad" />
         </span>
         <p className="min-w-0 flex-1 text-sm text-muted-foreground">
