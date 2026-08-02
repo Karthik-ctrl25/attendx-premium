@@ -90,6 +90,26 @@ export function ProfileView() {
 function IdentityCard() {
   const { meta } = useApp();
   const role: Role = meta.role ?? "student";
+
+  return (
+    <GlassCard strong className="flex items-center gap-3 p-3.5">
+      <Avatar size={52} className="shrink-0 ring-1 ring-white/70" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-display text-[16px] font-semibold tracking-tight">
+          {meta.studentName || "Student"}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">
+          {meta.department || "Dept"} • Semester {meta.semester || "—"} • Section {meta.section || "—"}
+        </p>
+        <p className="mt-0.5 truncate text-[11px] font-medium text-primary">{ROLE_LABEL[role]}</p>
+      </div>
+    </GlassCard>
+  );
+}
+
+function AcademicDetailsCard() {
+  const { meta } = useApp();
+  const role: Role = meta.role ?? "student";
   const joined = meta.createdAt
     ? new Date(meta.createdAt).toLocaleDateString(undefined, {
         day: "numeric",
@@ -98,32 +118,23 @@ function IdentityCard() {
       })
     : "—";
 
+  const rows = [
+    { label: "USN", value: meta.usn },
+    { label: "Email", value: meta.email },
+    { label: "Department", value: meta.department },
+    { label: "Semester", value: meta.semester },
+    { label: "Section", value: meta.section },
+    { label: "Role", value: ROLE_LABEL[role] },
+    { label: "Joined", value: joined },
+  ];
+
   return (
-    <GlassCard strong className="space-y-2 p-5">
-      <div className="flex min-w-0 items-center gap-3">
-        <Avatar size={56} className="shrink-0 ring-1 ring-white/70" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-[17px] font-semibold tracking-tight">
-            {meta.studentName || "Student"}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">{meta.usn || "USN not set"}</p>
-        </div>
+    <GlassCard className="p-3.5">
+      <div className="divide-y divide-foreground/5">
+        {rows.map((r) => (
+          <InfoRow key={r.label} label={r.label} value={r.value} />
+        ))}
       </div>
-
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Row label="USN" value={meta.usn} />
-        <Row label="Email" value={meta.email} />
-        <Row label="Department" value={meta.department} />
-        <Row label="Semester" value={meta.semester} />
-        <Row label="Section" value={meta.section} />
-        <Row label="Role" value={ROLE_LABEL[role]} />
-        <Row label="Joined" value={joined} />
-      </div>
-
-      <p className="px-1 pt-1 text-[11px] leading-relaxed text-muted-foreground">
-        Your profile is set during onboarding and stays fixed so attendance records remain
-        consistent.
-      </p>
     </GlassCard>
   );
 }
