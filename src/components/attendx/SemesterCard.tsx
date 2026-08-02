@@ -34,15 +34,15 @@ export function SemesterCard({ compact }: { compact?: boolean } = {}) {
   if (!next) {
     if (compact) return null;
     return (
-      <GlassCard className="flex min-w-0 items-center gap-3 p-5">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-          <GraduationCap className="size-4 text-muted-foreground" />
+      <GlassCard className="flex min-w-0 items-center gap-2.5 px-3 py-2.5">
+        <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+          <GraduationCap className="size-3.5 text-muted-foreground" />
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">
+          <p className="truncate text-[13px] font-semibold">
             Semester {meta.semester || "—"} · Section {meta.section || "—"}
           </p>
-          <p className="truncate text-xs text-muted-foreground">
+          <p className="truncate text-[11px] text-muted-foreground">
             AttendX will ask you when the next semester begins.
           </p>
         </div>
@@ -51,23 +51,24 @@ export function SemesterCard({ compact }: { compact?: boolean } = {}) {
   }
 
   return (
-    <GlassCard strong className="space-y-3 p-5">
-      <div className="flex min-w-0 items-start gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-          <CalendarPlus className="size-4 text-muted-foreground" />
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">A new semester has started.</p>
-          <p className="text-sm text-muted-foreground">Are you now in Semester {next}?</p>
-        </div>
+    <GlassCard strong className="flex min-w-0 flex-wrap items-center gap-2.5 px-3 py-2.5">
+      <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-white/70 shadow-soft">
+        <CalendarPlus className="size-3.5 text-muted-foreground" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold">A new semester has started.</p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          Are you now in Semester {next}?
+        </p>
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Button className="rounded-2xl" onClick={accept}>
+      <div className="flex shrink-0 gap-1.5">
+        <Button size="sm" className="h-8 rounded-xl px-3" onClick={accept}>
           Yes
         </Button>
         <Button
+          size="sm"
           variant="secondary"
-          className="rounded-2xl"
+          className="h-8 rounded-xl px-3"
           onClick={() => updateMeta({ semesterPromptSnoozedFor: next })}
         >
           Later
