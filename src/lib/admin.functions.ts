@@ -27,9 +27,11 @@ async function assertAdmin(context: Ctx) {
     _user_id: context.userId,
     _role: "admin",
   });
-  if (error) throw new Error("Access denied");
-  if (!data) throw new Error("Access denied");
+  // Return a real 403 instead of letting a plain Error bubble up as a 500
+  // ("Internal Server Error") page.
+  if (error || !data) throw new Response("Forbidden", { status: 403 });
 }
+
 
 const count = async (supabase: any, table: string, filters?: Record<string, unknown>) => {
   let q = supabase.from(table).select("*", { count: "exact", head: true });
