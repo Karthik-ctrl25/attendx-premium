@@ -36,7 +36,12 @@ interface AppState {
   history: HistoryEntry[];
   imports: AttendanceImport[];
   recordImport: (entry: Omit<AttendanceImport, "id" | "ts">) => Promise<void>;
-  mark: (code: string, action: AttendanceAction, slotId?: string) => Promise<void>;
+  mark: (
+    code: string,
+    action: AttendanceAction,
+    slotId?: string,
+    fallback?: { name?: string; faculty?: string },
+  ) => Promise<void>;
   undo: (entryId: string) => Promise<void>;
   saveSubjects: (subjects: Subject[]) => Promise<void>;
   updateSubject: (code: string, patch: Partial<Subject>) => Promise<void>;
@@ -101,9 +106,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         ]);
         if (cancelled) return;
         if (hasProfile && patch.setupComplete) {
-          const nextMeta = { ...DEFAULT_META, ...patch } as AppMeta;
-          setMeta(nextMeta);
-          await db.putMeta(nextMeta);
+          // Remote wins, but never let blank remote fields wipe the locally
+          // saved academic scope — that scope is what the published timetable
+          // query filters on.
+          setMeta((prev) => {
+            const nextMeta = { ...DEFAULT_META, ...prev, ...patch } as AppMeta;
+            nextMeta.department = patch.department || prev.department || "";
+            nextMeta.semester = patch.semester || prev.semester || "";
+            nextMeta.section = patch.section || prev.section || "";
+            nextMeta.usn = patch.usn || prev.usn || "";
+            nextMeta.studentName = patch.studentName || prev.studentName || "";
+            void db.putMeta(nextMeta);
+            return nextMeta;
+          });
           if (remote.subjects.length) {
             setSubjects(remote.subjects);
             await db.putSubjects(remote.subjects);
@@ -111,15 +126,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           if (remote.timetable.length) {
             setTimetable(remote.timetable);
             await db.replaceTimetable(remote.timetable);
-          }
-          // An admin-published class timetable always wins over the local one.
-          const scope = scopeOf(nextMeta);
-          if (scope) {
-            const published = await pullPublishedTimetable(scope).catch(() => []);
-            if (published.length && !cancelled) {
-              setTimetable(published);
-              await db.replaceTimetable(published);
-            }
           }
           if (remote.history.length) {
             const merged = remote.history.sort((a, b) => b.ts - a.ts);
@@ -138,6 +144,29 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [ready, userId]);
+
+  /* An admin-published class timetable always wins over the local one. Runs
+   * whenever the student's Department / Semester / Section is known, and the
+   * result is cached in IndexedDB so navigation stays instant offline. */
+  const scopeKey = `${meta.department}|${meta.semester}|${meta.section}`;
+  useEffect(() => {
+    if (!ready || !userId) return;
+    const scope = scopeOf(meta);
+    if (!scope) return;
+    let cancelled = false;
+    pullPublishedTimetable(scope)
+      .then(async (published) => {
+        if (cancelled || !published.length) return;
+        setTimetable(published);
+        await db.replaceTimetable(published);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, userId, scopeKey]);
+
 
   useEffect(() => {
     if (!userId || !hydrated || !meta.setupComplete) return;
@@ -164,16 +193,32 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   );
 
   const mark = useCallback(
-    async (code: string, action: AttendanceAction, slotId?: string) => {
-      const subject = subjects.find((s) => s.code === code);
-      if (!subject) return;
+    async (
+      code: string,
+      action: AttendanceAction,
+      slotId?: string,
+      fallback?: { name?: string; faculty?: string },
+    ) => {
+      const existing = subjects.find((s) => s.code === code);
+      // A published timetable can contain a subject the student hasn't imported
+      // yet — start tracking it instead of refusing the tap.
+      const subject: Subject = existing ?? {
+        code,
+        name: fallback?.name || code,
+        faculty: fallback?.faculty || "",
+        present: 0,
+        absent: 0,
+        total: 0,
+      };
       const updated: Subject = {
         ...subject,
         present: subject.present + (action === "present" ? 1 : 0),
         absent: subject.absent + (action === "absent" ? 1 : 0),
         total: subject.total + 1,
       };
-      const nextSubjects = subjects.map((s) => (s.code === code ? updated : s));
+      const nextSubjects = existing
+        ? subjects.map((s) => (s.code === code ? updated : s))
+        : [...subjects, updated];
       const entry: HistoryEntry = {
         id: uid(),
         ts: Date.now(),
@@ -188,6 +233,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [subjects],
   );
+
 
   const undo = useCallback(
     async (entryId: string) => {
