@@ -3,11 +3,11 @@ import { Play, RotateCcw, SkipForward } from "lucide-react";
 import { useState } from "react";
 
 /**
- * Placeholder tutorial player.
- * Drop the real tutorial file at /public/tutorial.mp4 and set VIDEO_SRC to
- * "/tutorial.mp4" — the player below switches over automatically.
+ * Tutorial player.
+ * Drop the tutorial file at /public/tutorial.mp4 — it is served at "/tutorial.mp4".
+ * Optional poster image: /public/tutorial-poster.jpg
  */
-const VIDEO_SRC: string | null = null;
+const VIDEO_SRC = "/tutorial.mp4";
 
 export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
   const [playing, setPlaying] = useState(false);
