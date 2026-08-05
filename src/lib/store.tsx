@@ -36,7 +36,12 @@ interface AppState {
   history: HistoryEntry[];
   imports: AttendanceImport[];
   recordImport: (entry: Omit<AttendanceImport, "id" | "ts">) => Promise<void>;
-  mark: (code: string, action: AttendanceAction, slotId?: string) => Promise<void>;
+  mark: (
+    code: string,
+    action: AttendanceAction,
+    slotId?: string,
+    fallback?: { name?: string; faculty?: string },
+  ) => Promise<void>;
   undo: (entryId: string) => Promise<void>;
   saveSubjects: (subjects: Subject[]) => Promise<void>;
   updateSubject: (code: string, patch: Partial<Subject>) => Promise<void>;
