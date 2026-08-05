@@ -274,6 +274,8 @@ export function AdminTimetableManager() {
           <AdminTimetableUpload scope={scope} onPublished={invalidate} />
 
           <GlassCard className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3.5">
+            <div className="min-w-0">
+
 
               <p className="truncate text-[13px] font-semibold">
                 {scope.department} · Sem {scope.semester} · {scope.section}
