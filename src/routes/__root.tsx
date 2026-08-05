@@ -16,6 +16,8 @@ import { ClassSpaceProvider } from "../lib/class-store";
 import { AppDataProvider, useApp } from "../lib/store";
 import { AppShell } from "../components/attendx/AppShell";
 import { Onboarding } from "../components/attendx/Onboarding";
+import { useSession } from "../lib/session";
+
 import { Toaster } from "../components/ui/sonner";
 import { registerServiceWorker } from "../lib/register-sw";
 
