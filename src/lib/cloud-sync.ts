@@ -39,11 +39,12 @@ export const normText = (v: string | null | undefined): string =>
     .replace(/\s+/g, " ")
     .trim();
 
-export const normalizeScope = (s: ClassScope): ClassScope => ({
+export const normalizeScope = (s: Partial<ClassScope>): ClassScope => ({
   department: normText(s.department),
   semester: normText(s.semester),
   section: normText(s.section).toUpperCase(),
 });
+
 
 export const normalizeUsn = (v: string | null | undefined): string =>
   normText(v).replace(/\s+/g, "").toUpperCase();
