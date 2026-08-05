@@ -351,6 +351,7 @@ export async function pullPublishedTimetable(scope: ClassScope): Promise<ClassSl
     .eq("semester", scope.semester)
     .eq("section", scope.section)
     .eq("published", true);
+  console.info("[AttendX] timetable loaded", { scope, slots: data?.length ?? 0 });
   return (data ?? []).map((r) => ({
     id: r.id,
     day: r.day,
