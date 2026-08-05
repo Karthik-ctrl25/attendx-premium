@@ -37,6 +37,18 @@ export function AdminStudents() {
     queryFn: () => list({ data: filters }),
   });
 
+  const listScopes = useServerFn(adminListClassScopes);
+  const { data: scopes } = useQuery({ queryKey: ["admin", "scopes"], queryFn: () => listScopes({}) });
+  const departments = [
+    ...new Set<string>([...DEPARTMENTS, ...(scopes ?? []).map((s) => s.department)]),
+  ].sort();
+  const semesters = [
+    ...new Set<string>([...SEMESTERS, ...(scopes ?? []).map((s) => s.semester)]),
+  ].sort();
+  const sections = [
+    ...new Set<string>([...SECTIONS, ...(scopes ?? []).map((s) => s.section)]),
+  ].sort();
+
   const invalidate = () => void qc.invalidateQueries({ queryKey: ["admin", "students"] });
 
   const toggle = useMutation({
