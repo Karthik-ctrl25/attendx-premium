@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarRange, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock, ShieldCheck, XCircle } from "lucide-react";
+import { useMemo } from "react";
 
 import { AttendanceRing } from "@/components/attendx/AttendanceRing";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
@@ -7,6 +8,7 @@ import { SemesterCard } from "@/components/attendx/SemesterCard";
 import { Button } from "@/components/ui/button";
 import { classesCanMiss, overallStats } from "@/lib/attendance";
 import { useApp } from "@/lib/store";
+import { todaysMarks, todaysSlots } from "@/lib/today";
 import { DAYS } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
