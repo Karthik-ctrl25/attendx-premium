@@ -189,7 +189,9 @@ export async function extractTimetableFromFile(
 
   onStage?.("Uploading...");
   const isPdf = file.type === "application/pdf";
-  const fileDataUrl = isPdf ? await fileToDataUrl(file) : (await preprocessScreenshot(file)).dataUrl;
+  const fileDataUrl = isPdf
+    ? await fileToDataUrl(file)
+    : (await preprocessScreenshot(file)).dataUrl;
 
   onStage?.("Reading Layout...");
   const result = await extractTimetableVision({

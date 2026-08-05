@@ -83,12 +83,12 @@ const SCHEMA = {
   required: ["isCmrAttendancePage", "headersFound", "rows"],
 } as const;
 
-
 function validateInput(input: unknown): { imageDataUrl: string } {
   const data = input as { imageDataUrl?: unknown };
   const url = typeof data?.imageDataUrl === "string" ? data.imageDataUrl : "";
   if (!url.startsWith("data:image/")) throw new Error("An image is required.");
-  if (url.length > 12_000_000) throw new Error("That image is too large. Try a smaller screenshot.");
+  if (url.length > 12_000_000)
+    throw new Error("That image is too large. Try a smaller screenshot.");
   return { imageDataUrl: url };
 }
 
@@ -139,7 +139,8 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
 
     if (!response.ok) {
       const body = await response.text();
-      if (response.status === 429) throw new Error("AI is busy right now. Please try again shortly.");
+      if (response.status === 429)
+        throw new Error("AI is busy right now. Please try again shortly.");
       if (response.status === 402)
         throw new Error("AI credits are exhausted. Add credits to continue using OCR.");
       throw new Error(`Vision request failed [${response.status}]: ${body.slice(0, 300)}`);
@@ -190,4 +191,3 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
       headersFound,
     };
   });
-

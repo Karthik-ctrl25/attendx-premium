@@ -63,7 +63,10 @@ export function validateRow(row: VisionRow): Subject {
       const fromPct = Math.round((row.percentage / 100) * total);
       if (fromPct === present) {
         absent = total - present;
-      } else if (total - absent >= 0 && Math.round(((total - absent) / total) * 100) === Math.round(row.percentage)) {
+      } else if (
+        total - absent >= 0 &&
+        Math.round(((total - absent) / total) * 100) === Math.round(row.percentage)
+      ) {
         present = total - absent;
       } else {
         total = sum;
@@ -134,7 +137,6 @@ export async function extractAttendanceFromImage(
 
   if (!result.isCmrAttendancePage) throw new NotCmrScreenshotError();
 
-
   onStage?.("Recognizing Subjects...");
   onStage?.("Extracting Attendance...");
 
@@ -163,4 +165,3 @@ export async function extractAttendanceFromImage(
 
 export { preprocessScreenshot };
 export type { VisionRow };
-

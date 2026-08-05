@@ -227,31 +227,27 @@ export function AdminTimetableUpload({
     );
   }, []);
 
-
-  const onFile = useCallback(
-    async (file: File | undefined) => {
-      if (!file) return;
-      setStage("Uploading...");
-      try {
-        const result = await extractTimetableFromFile(file, setStage);
-        setSourceName(file.name);
-        setSlots(result.slots);
-        toast.success(`${result.slots.length} classes extracted — review before publishing`);
-      } catch (error) {
-        const message =
-          error instanceof NotTimetableError
+  const onFile = useCallback(async (file: File | undefined) => {
+    if (!file) return;
+    setStage("Uploading...");
+    try {
+      const result = await extractTimetableFromFile(file, setStage);
+      setSourceName(file.name);
+      setSlots(result.slots);
+      toast.success(`${result.slots.length} classes extracted — review before publishing`);
+    } catch (error) {
+      const message =
+        error instanceof NotTimetableError
+          ? error.message
+          : error instanceof Error
             ? error.message
-            : error instanceof Error
-              ? error.message
-              : "Could not read that file.";
-        toast.error(message);
-      } finally {
-        setStage(null);
-        if (fileRef.current) fileRef.current.value = "";
-      }
-    },
-    [],
-  );
+            : "Could not read that file.";
+      toast.error(message);
+    } finally {
+      setStage(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }, []);
 
   const publish = useMutation({
     mutationFn: (replace: boolean) =>
@@ -268,9 +264,7 @@ export function AdminTimetableUpload({
       setSlots([]);
       setSourceName("");
       onPublished();
-      toast.success(
-        replace ? "Timetable published to students" : "Classes added and published",
-      );
+      toast.success(replace ? "Timetable published to students" : "Classes added and published");
     },
     onError: () => toast.error("Could not publish the timetable"),
   });
