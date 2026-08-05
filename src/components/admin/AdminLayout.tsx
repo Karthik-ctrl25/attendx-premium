@@ -197,42 +197,71 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
               onClick={() => setMoreOpen(false)}
               aria-label="Close menu"
-              className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] lg:hidden"
+              className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[3px] lg:hidden"
             />
             <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 380, damping: 34 }}
-              className="glass-strong fixed inset-x-3 bottom-24 z-40 space-y-1 rounded-3xl p-2 lg:hidden"
+              initial={{ y: 28, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 24, opacity: 0, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.7 }}
+              role="dialog"
+              aria-label="More admin sections"
+              className="glass-strong fixed inset-x-3 bottom-24 z-40 overflow-hidden rounded-[28px] border border-foreground/10 p-2.5 shadow-soft lg:hidden"
             >
-              <div className="flex items-center justify-between px-2.5 py-1.5">
-                <p className="text-[12px] font-semibold text-muted-foreground">More</p>
-                <button onClick={() => setMoreOpen(false)} aria-label="Close">
-                  <X className="size-4 text-muted-foreground" />
+              <div className="mx-auto mb-2 h-1 w-9 rounded-full bg-foreground/15" />
+              <div className="mb-1 flex items-center justify-between px-2">
+                <p className="text-[12.5px] font-semibold tracking-tight">More</p>
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen(false)}
+                  aria-label="Close"
+                  className="grid size-7 place-items-center rounded-full bg-foreground/[0.07] transition-colors active:bg-foreground/15"
+                >
+                  <X className="size-3.5 text-muted-foreground" />
                 </button>
               </div>
-              {MOBILE_MORE.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMoreOpen(false)}
-                  className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[13px] font-medium"
-                >
-                  <item.icon className="size-[18px] shrink-0 text-muted-foreground" />
-                  {item.label}
-                </Link>
-              ))}
+              <div className="space-y-1">
+                {MOBILE_MORE.map((item, index) => (
+                  <motion.div
+                    key={item.to}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.03 + index * 0.025, duration: 0.2 }}
+                  >
+                    <Link
+                      to={item.to}
+                      onClick={() => setMoreOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-2xl px-3 py-3 text-[13.5px] font-medium transition-colors",
+                        isActive(item)
+                          ? "bg-foreground/[0.09] text-foreground"
+                          : "text-foreground/90 active:bg-foreground/[0.06]",
+                      )}
+                    >
+                      <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-foreground/[0.06]">
+                        <item.icon className="size-[17px] text-muted-foreground" />
+                      </span>
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="my-2 h-px bg-foreground/8" />
               <button
+                type="button"
                 onClick={signOut}
-                className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-[13px] font-medium text-bad"
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-[13.5px] font-medium text-bad transition-colors active:bg-bad/10"
               >
-                <LogOut className="size-[18px] shrink-0" />
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-bad/10">
+                  <LogOut className="size-[17px]" />
+                </span>
                 Logout
               </button>
             </motion.div>
+
           </>
         ) : null}
       </AnimatePresence>
