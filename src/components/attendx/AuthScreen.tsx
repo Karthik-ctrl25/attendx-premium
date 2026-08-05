@@ -42,6 +42,8 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  /** Set only when the backend requires email verification before the first session. */
+  const [pendingVerify, setPendingVerify] = useState(false);
 
   const reset = () => {
     setError("");
@@ -83,13 +85,21 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
           options: { emailRedirectTo: window.location.origin },
         });
         if (err) throw err;
-        if (!data.session) {
-          setNotice("Account created. Verify your email, then sign in.");
-          setMode("signin");
-          setPassword("");
-        } else {
+        if (data.session) {
+          // Backend allows an immediate session — go straight to onboarding.
           onContinue?.();
+          return;
         }
+        // No session: try signing in right away in case confirmation is off.
+        const { error: signInErr } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (!signInErr) {
+          onContinue?.();
+          return;
+        }
+        setPendingVerify(true);
         return;
       }
       const { error: err } = await supabase.auth.signInWithPassword({
@@ -104,6 +114,93 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
       setBusy(false);
     }
   };
+
+  /** Retries sign-in after the user confirms their email — no going back to Sign In. */
+  const retryVerified = async () => {
+    setBusy(true);
+    reset();
+    try {
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (err) throw err;
+      setPendingVerify(false);
+      onContinue?.();
+    } catch {
+      setError("Not verified yet. Open the link in your inbox, then tap again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resendVerification = async () => {
+    setBusy(true);
+    reset();
+    const { error: err } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setError(err ? "Could not resend right now. Try again shortly." : "");
+    if (!err) setNotice("Verification email sent again.");
+    setBusy(false);
+  };
+
+  if (pendingVerify) {
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-6 py-16 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="grid size-20 place-items-center rounded-[26px] bg-[image:var(--gradient-ink)] text-ink-foreground shadow-float"
+        >
+          <MailCheck className="size-9" />
+        </motion.div>
+        <h1 className="mt-8 font-display text-[30px] font-semibold leading-tight tracking-tight">
+          Verify your email
+        </h1>
+        <p className="mt-3 text-[14.5px] leading-relaxed text-muted-foreground">
+          We sent a confirmation link to <span className="font-medium">{email.trim()}</span>. Open
+          it, then come straight back here — you don&apos;t need to sign in again.
+        </p>
+
+        <div className="mt-8 w-full space-y-2.5">
+          <Button
+            className="h-12 w-full rounded-2xl text-[15px]"
+            disabled={busy}
+            onClick={() => void retryVerified()}
+          >
+            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+            I&apos;ve verified
+          </Button>
+          <Button
+            variant="ghost"
+            className="h-11 w-full rounded-2xl text-[14px]"
+            disabled={busy}
+            onClick={() => void resendVerification()}
+          >
+            Resend email
+          </Button>
+          <button
+            type="button"
+            className="pt-1 text-[13px] text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => {
+              reset();
+              setPendingVerify(false);
+              setMode("signin");
+            }}
+          >
+            Use a different email
+          </button>
+        </div>
+
+        {error ? <p className="mt-5 text-[13px] text-destructive">{error}</p> : null}
+        {notice ? <p className="mt-5 text-[13px] text-muted-foreground">{notice}</p> : null}
+      </div>
+    );
+  }
 
   const canSubmit =
     email.trim().includes("@") && (mode === "forgot" || password.length >= 6) && !busy;

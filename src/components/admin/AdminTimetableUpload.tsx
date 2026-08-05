@@ -1,7 +1,17 @@
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, Check, FileUp, Loader2, Plus, Send, Trash2, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  FileUp,
+  Loader2,
+  Plus,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +23,7 @@ import type { ClassScopeInput } from "@/lib/admin.types";
 import {
   blockingIssues,
   draftId,
+  pendingApproval,
   extractTimetableFromFile,
   ISSUE_LABEL,
   lowConfidenceCount,
@@ -29,6 +40,10 @@ const selectClass =
   "h-9 w-full rounded-xl border border-foreground/10 bg-transparent px-2.5 text-[12px] text-foreground [&>option]:bg-background [&>option]:text-foreground";
 const inputClass = "h-9 rounded-xl text-[12px]";
 
+/** A row the admin has just edited counts as reviewed once it validates cleanly. */
+const autoApprove = (slot: DraftSlot) =>
+  Boolean((slot.code.trim() || slot.name.trim()) && slot.start_time && slot.end_time);
+
 const emptyDraft = (): DraftSlot => ({
   id: draftId(),
   day: 1,
@@ -41,15 +56,18 @@ const emptyDraft = (): DraftSlot => ({
   session: "Theory",
   confidence: 100,
   issues: [],
+  approved: true,
 });
 
 const DraftRow = memo(function DraftRow({
   slot,
   onChange,
+  onApprove,
   onRemove,
 }: {
   slot: DraftSlot;
   onChange: (next: DraftSlot) => void;
+  onApprove: () => void;
   onRemove: () => void;
 }) {
   const bad = slot.issues.some((i) => i !== "low-confidence");
@@ -59,11 +77,13 @@ const DraftRow = memo(function DraftRow({
     <div
       className={[
         "space-y-2 rounded-2xl border p-2.5",
-        bad
-          ? "border-bad/40 bg-bad/[0.06]"
-          : warn
-            ? "border-warn/40 bg-warn/[0.06]"
-            : "border-foreground/10",
+        slot.approved
+          ? "border-good/40 bg-good/[0.06]"
+          : bad
+            ? "border-bad/40 bg-bad/[0.06]"
+            : warn
+              ? "border-warn/40 bg-warn/[0.06]"
+              : "border-foreground/10",
       ].join(" ")}
     >
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
@@ -140,6 +160,11 @@ const DraftRow = memo(function DraftRow({
             {ISSUE_LABEL[issue]}
           </span>
         ))}
+        {slot.approved ? (
+          <span className="flex items-center gap-1 rounded-full bg-good/15 px-2 py-0.5 text-[10px] text-good">
+            <CheckCircle2 className="size-3" /> Approved
+          </span>
+        ) : null}
         {slot.confidence > 0 && slot.confidence < 100 ? (
           <span className="rounded-full bg-foreground/8 px-2 py-0.5 text-[10px] text-muted-foreground">
             {slot.confidence}% confidence
@@ -147,8 +172,18 @@ const DraftRow = memo(function DraftRow({
         ) : null}
         <Button
           size="sm"
+          variant={slot.approved ? "ghost" : "secondary"}
+          className="ml-auto h-8 rounded-xl px-2.5 text-[11px]"
+          onClick={onApprove}
+          aria-label={slot.approved ? "Undo approval" : "Approve row"}
+        >
+          <CheckCircle2 className="mr-1 size-3.5" />
+          {slot.approved ? "Undo" : "OK"}
+        </Button>
+        <Button
+          size="sm"
           variant="ghost"
-          className="ml-auto h-8 rounded-xl px-2"
+          className="h-8 rounded-xl px-2"
           onClick={onRemove}
           aria-label="Delete class"
         >
@@ -174,37 +209,45 @@ export function AdminTimetableUpload({
 
   const errors = useMemo(() => blockingIssues(slots), [slots]);
   const lowConfidence = useMemo(() => lowConfidenceCount(slots), [slots]);
+  const pending = useMemo(() => pendingApproval(slots), [slots]);
+  const canPublish = slots.length > 0 && errors === 0 && pending === 0;
 
-  const setValidated = useCallback(
-    (next: DraftSlot[]) =>
-      setSlots(validateSlots(next).sort((a, b) => a.day - b.day || a.start_time.localeCompare(b.start_time))),
-    [],
-  );
+  const setValidated = useCallback((next: DraftSlot[]) => {
+    // Validate as if nothing were approved so a broken row can never be locked in,
+    // then re-apply approvals and clear warnings for the rows that pass.
+    const raw = validateSlots(next.map((s) => ({ ...s, approved: false })));
+    const merged = raw.map((s, i) => ({
+      ...s,
+      approved: Boolean(next[i]?.approved) && !s.issues.some((x) => x !== "low-confidence"),
+    }));
+    setSlots(
+      validateSlots(merged).sort(
+        (a, b) => a.day - b.day || a.start_time.localeCompare(b.start_time),
+      ),
+    );
+  }, []);
 
-  const onFile = useCallback(
-    async (file: File | undefined) => {
-      if (!file) return;
-      setStage("Uploading...");
-      try {
-        const result = await extractTimetableFromFile(file, setStage);
-        setSourceName(file.name);
-        setSlots(result.slots);
-        toast.success(`${result.slots.length} classes extracted — review before publishing`);
-      } catch (error) {
-        const message =
-          error instanceof NotTimetableError
+  const onFile = useCallback(async (file: File | undefined) => {
+    if (!file) return;
+    setStage("Uploading...");
+    try {
+      const result = await extractTimetableFromFile(file, setStage);
+      setSourceName(file.name);
+      setSlots(result.slots);
+      toast.success(`${result.slots.length} classes extracted — review before publishing`);
+    } catch (error) {
+      const message =
+        error instanceof NotTimetableError
+          ? error.message
+          : error instanceof Error
             ? error.message
-            : error instanceof Error
-              ? error.message
-              : "Could not read that file.";
-        toast.error(message);
-      } finally {
-        setStage(null);
-        if (fileRef.current) fileRef.current.value = "";
-      }
-    },
-    [],
-  );
+            : "Could not read that file.";
+      toast.error(message);
+    } finally {
+      setStage(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }, []);
 
   const publish = useMutation({
     mutationFn: (replace: boolean) =>
@@ -212,16 +255,16 @@ export function AdminTimetableUpload({
         data: {
           ...scope,
           replace,
-          slots: slots.map(({ id: _id, confidence: _c, issues: _i, ...rest }) => rest),
+          slots: slots.map(
+            ({ id: _id, confidence: _c, issues: _i, approved: _a, ...rest }) => rest,
+          ),
         },
       }),
     onSuccess: (_r, replace) => {
       setSlots([]);
       setSourceName("");
       onPublished();
-      toast.success(
-        replace ? "Timetable published to students" : "Classes added and published",
-      );
+      toast.success(replace ? "Timetable published to students" : "Classes added and published");
     },
     onError: () => toast.error("Could not publish the timetable"),
   });
@@ -285,6 +328,15 @@ export function AdminTimetableUpload({
                 <AlertTriangle className="size-3" /> {errors} to fix
               </span>
             ) : null}
+            {pending ? (
+              <span className="rounded-full bg-foreground/8 px-2 py-0.5 text-[10px] text-muted-foreground">
+                {pending} to approve
+              </span>
+            ) : (
+              <span className="rounded-full bg-good/15 px-2 py-0.5 text-[10px] text-good">
+                All approved
+              </span>
+            )}
             {lowConfidence ? (
               <span className="rounded-full bg-warn/15 px-2 py-0.5 text-[10px] text-warn">
                 {lowConfidence} low confidence
@@ -297,7 +349,18 @@ export function AdminTimetableUpload({
               <DraftRow
                 key={slot.id}
                 slot={slot}
-                onChange={(next) => setValidated(slots.map((s) => (s.id === next.id ? next : s)))}
+                onChange={(next) =>
+                  setValidated(
+                    slots.map((s) =>
+                      s.id === next.id ? { ...next, approved: autoApprove(next) } : s,
+                    ),
+                  )
+                }
+                onApprove={() =>
+                  setValidated(
+                    slots.map((s) => (s.id === slot.id ? { ...s, approved: !s.approved } : s)),
+                  )
+                }
                 onRemove={() => setValidated(slots.filter((s) => s.id !== slot.id))}
               />
             ))}
@@ -315,7 +378,7 @@ export function AdminTimetableUpload({
             <Button
               size="sm"
               className="rounded-xl"
-              disabled={errors > 0 || publish.isPending}
+              disabled={!canPublish || publish.isPending}
               onClick={() => publish.mutate(true)}
             >
               {publish.isPending ? (
@@ -329,7 +392,7 @@ export function AdminTimetableUpload({
               size="sm"
               variant="secondary"
               className="rounded-xl"
-              disabled={errors > 0 || publish.isPending}
+              disabled={!canPublish || publish.isPending}
               onClick={() => publish.mutate(false)}
             >
               <Check className="mr-1 size-3.5" /> Publish (append)
@@ -347,8 +410,11 @@ export function AdminTimetableUpload({
             </Button>
           </div>
           {errors ? (
-            <p className="text-[11.5px] text-bad">
-              Fix the highlighted rows before publishing.
+            <p className="text-[11.5px] text-bad">Fix the highlighted rows before publishing.</p>
+          ) : pending ? (
+            <p className="text-[11.5px] text-muted-foreground">
+              Approve the remaining {pending} {pending === 1 ? "row" : "rows"} (press OK) to enable
+              publishing. Editing a valid row approves it automatically.
             </p>
           ) : null}
         </div>

@@ -44,7 +44,7 @@ export type TimetableIssue =
   | "reversed-time"
   | "duplicate"
   | "overlap"
-  | "missing-code"
+  | "missing-subject"
   | "low-confidence";
 
 /** An editable, not-yet-saved timetable row shown in the admin preview. */
@@ -61,6 +61,8 @@ export interface DraftSlot {
   session: string;
   confidence: number;
   issues: TimetableIssue[];
+  /** Admin pressed "OK" — the row is locked, warning-free and ready to publish. */
+  approved: boolean;
 }
 
 export interface TimetableExtraction {
@@ -96,11 +98,14 @@ function fileToDataUrl(file: File): Promise<string> {
 export function validateSlots(slots: DraftSlot[]): DraftSlot[] {
   const bySignature = new Map<string, number>();
   for (const s of slots) {
-    const key = `${s.day}|${s.start_time}|${s.code.toUpperCase()}`;
+    const key = `${s.day}|${s.start_time}|${(s.code || s.name).toUpperCase()}`;
     bySignature.set(key, (bySignature.get(key) ?? 0) + 1);
   }
 
   return slots.map((slot) => {
+    // An approved row has been eyeballed by the admin — never warn about it again.
+    if (slot.approved) return { ...slot, issues: [] };
+
     const issues: TimetableIssue[] = [];
 
     if (!Number.isInteger(slot.day) || slot.day < 0 || slot.day > 6) issues.push("invalid-day");
@@ -109,9 +114,10 @@ export function validateSlots(slots: DraftSlot[]): DraftSlot[] {
     } else if (minutes(slot.end_time) <= minutes(slot.start_time)) {
       issues.push("reversed-time");
     }
-    if (!slot.code.trim()) issues.push("missing-code");
+    // Subject code is optional: many CMR timetables never print one.
+    if (!slot.code.trim() && !slot.name.trim()) issues.push("missing-subject");
 
-    const key = `${slot.day}|${slot.start_time}|${slot.code.toUpperCase()}`;
+    const key = `${slot.day}|${slot.start_time}|${(slot.code || slot.name).toUpperCase()}`;
     if ((bySignature.get(key) ?? 0) > 1) issues.push("duplicate");
 
     if (!issues.includes("invalid-time") && !issues.includes("reversed-time")) {
@@ -138,6 +144,9 @@ export function validateSlots(slots: DraftSlot[]): DraftSlot[] {
 export const blockingIssues = (slots: DraftSlot[]) =>
   slots.filter((s) => s.issues.some((i) => i !== "low-confidence")).length;
 
+/** Publishing requires every row to be explicitly approved by the admin. */
+export const pendingApproval = (slots: DraftSlot[]) => slots.filter((s) => !s.approved).length;
+
 export const lowConfidenceCount = (slots: DraftSlot[]) =>
   slots.filter((s) => s.issues.includes("low-confidence")).length;
 
@@ -147,7 +156,7 @@ export const ISSUE_LABEL: Record<TimetableIssue, string> = {
   "reversed-time": "End time is before start",
   duplicate: "Duplicate class",
   overlap: "Overlaps another class",
-  "missing-code": "Missing subject code",
+  "missing-subject": "No subject code or name",
   "low-confidence": "Low confidence — please check",
 };
 
@@ -163,6 +172,7 @@ const toDraft = (row: TimetableVisionRow): DraftSlot => ({
   session: row.session === "Lab" ? "Lab" : "Theory",
   confidence: row.confidence,
   issues: [],
+  approved: false,
 });
 
 /**
@@ -179,7 +189,9 @@ export async function extractTimetableFromFile(
 
   onStage?.("Uploading...");
   const isPdf = file.type === "application/pdf";
-  const fileDataUrl = isPdf ? await fileToDataUrl(file) : (await preprocessScreenshot(file)).dataUrl;
+  const fileDataUrl = isPdf
+    ? await fileToDataUrl(file)
+    : (await preprocessScreenshot(file)).dataUrl;
 
   onStage?.("Reading Layout...");
   const result = await extractTimetableVision({

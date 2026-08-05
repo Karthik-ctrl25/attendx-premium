@@ -63,7 +63,10 @@ export function validateRow(row: VisionRow): Subject {
       const fromPct = Math.round((row.percentage / 100) * total);
       if (fromPct === present) {
         absent = total - present;
-      } else if (total - absent >= 0 && Math.round(((total - absent) / total) * 100) === Math.round(row.percentage)) {
+      } else if (
+        total - absent >= 0 &&
+        Math.round(((total - absent) / total) * 100) === Math.round(row.percentage)
+      ) {
         present = total - absent;
       } else {
         total = sum;
@@ -101,6 +104,9 @@ export function validateRow(row: VisionRow): Subject {
   };
 }
 
+/** Last extraction, keyed by the preprocessed image — re-uploads cost nothing. */
+let lastRun: { key: string; value: AttendanceExtraction } | null = null;
+
 /**
  * Runs the full pipeline: preprocess → layout check → AI vision → validation.
  * `onStage` reports each step so the UI can animate progress.
@@ -111,7 +117,20 @@ export async function extractAttendanceFromImage(
   onStage?: (stage: OcrStage) => void,
 ): Promise<AttendanceExtraction> {
   onStage?.("Uploading...");
-  const image = await preprocessScreenshot(file);
+  // Students get a compressed JPEG: same readable text, a fraction of the bytes,
+  // so the upload and the vision round-trip are much faster on mobile data.
+  const image = await preprocessScreenshot(file, {
+    maxEdge: 1400,
+    format: "image/jpeg",
+    quality: 0.82,
+    scanStep: 3,
+  });
+
+  const key = `${image.dataUrl.length}:${image.dataUrl.slice(-96)}`;
+  if (lastRun && lastRun.key === key) {
+    onStage?.("Done");
+    return lastRun.value;
+  }
 
   onStage?.("Reading Table...");
   const result = await extractAttendanceVision({ data: { imageDataUrl: image.dataUrl } });
@@ -135,9 +154,14 @@ export async function extractAttendanceFromImage(
   if (!subjects.length) throw new NotCmrScreenshotError();
   onStage?.("Done");
 
-  return { subjects, confidence: result.confidence, headersFound: result.headersFound };
+  const extraction = {
+    subjects,
+    confidence: result.confidence,
+    headersFound: result.headersFound,
+  };
+  lastRun = { key, value: extraction };
+  return extraction;
 }
 
 export { preprocessScreenshot };
 export type { VisionRow };
-

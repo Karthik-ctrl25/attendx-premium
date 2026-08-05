@@ -17,6 +17,22 @@ export interface PreprocessResult {
   cropped: boolean;
 }
 
+export interface PreprocessOptions {
+  /** Longest edge of the produced image. Smaller = faster upload. */
+  maxEdge?: number;
+  /** "image/png" keeps every pixel; "image/jpeg" is far smaller and faster. */
+  format?: "image/png" | "image/jpeg";
+  /** JPEG quality, 0-1. Ignored for PNG. */
+  quality?: number;
+  /** Sample step for the content-bounds scan. 2-3 is visually identical but much faster. */
+  scanStep?: number;
+}
+
+/** Small in-memory cache so re-uploading the same file never re-encodes it. */
+const cache = new Map<string, PreprocessResult>();
+const cacheKey = (file: File, o: Required<PreprocessOptions>) =>
+  `${file.name}:${file.size}:${file.lastModified}:${o.maxEdge}:${o.format}:${o.quality}`;
+
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -46,15 +62,15 @@ async function fileToDataUrl(file: File): Promise<string> {
  * Finds the bounding box of non-background content. ERP pages are white, so
  * anything meaningfully darker than white is treated as content.
  */
-function contentBounds(data: Uint8ClampedArray, w: number, h: number) {
+function contentBounds(data: Uint8ClampedArray, w: number, h: number, step = 1) {
   const threshold = 238;
   let top = h;
   let bottom = 0;
   let left = w;
   let right = 0;
 
-  for (let y = 0; y < h; y += 1) {
-    for (let x = 0; x < w; x += 1) {
+  for (let y = 0; y < h; y += step) {
+    for (let x = 0; x < w; x += step) {
       const i = (y * w + x) * 4;
       const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
       if (lum < threshold) {
@@ -82,15 +98,29 @@ function enhance(data: Uint8ClampedArray) {
   }
 }
 
-export async function preprocessScreenshot(file: File): Promise<PreprocessResult> {
+export async function preprocessScreenshot(
+  file: File,
+  options: PreprocessOptions = {},
+): Promise<PreprocessResult> {
+  const opts: Required<PreprocessOptions> = {
+    maxEdge: options.maxEdge ?? MAX_EDGE,
+    format: options.format ?? "image/png",
+    quality: options.quality ?? 0.85,
+    scanStep: options.scanStep ?? 1,
+  };
+
   if (typeof document === "undefined") {
     const dataUrl = await fileToDataUrl(file);
     return { dataUrl, width: 0, height: 0, cropped: false };
   }
 
+  const key = cacheKey(file, opts);
+  const hit = cache.get(key);
+  if (hit) return hit;
+
   try {
     const img = await loadImage(file);
-    const scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+    const scale = Math.min(1, opts.maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
     const w = Math.max(1, Math.round(img.naturalWidth * scale));
     const h = Math.max(1, Math.round(img.naturalHeight * scale));
 
@@ -104,7 +134,7 @@ export async function preprocessScreenshot(file: File): Promise<PreprocessResult
     ctx.drawImage(img, 0, 0, w, h);
 
     const frame = ctx.getImageData(0, 0, w, h);
-    const bounds = contentBounds(frame.data, w, h);
+    const bounds = contentBounds(frame.data, w, h, opts.scanStep);
 
     let cropped = false;
     let out = canvas;
@@ -137,12 +167,19 @@ export async function preprocessScreenshot(file: File): Promise<PreprocessResult
       octx.putImageData(pixels, 0, 0);
     }
 
-    return {
-      dataUrl: out.toDataURL("image/png"),
+    const result: PreprocessResult = {
+      dataUrl:
+        opts.format === "image/jpeg"
+          ? out.toDataURL("image/jpeg", opts.quality)
+          : out.toDataURL("image/png"),
       width: out.width,
       height: out.height,
       cropped,
     };
+
+    if (cache.size > 6) cache.clear();
+    cache.set(key, result);
+    return result;
   } catch {
     const dataUrl = await fileToDataUrl(file);
     return { dataUrl, width: 0, height: 0, cropped: false };
