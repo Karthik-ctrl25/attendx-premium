@@ -101,6 +101,9 @@ export function validateRow(row: VisionRow): Subject {
   };
 }
 
+/** Last extraction, keyed by the preprocessed image — re-uploads cost nothing. */
+let lastRun: { key: string; value: AttendanceExtraction } | null = null;
+
 /**
  * Runs the full pipeline: preprocess → layout check → AI vision → validation.
  * `onStage` reports each step so the UI can animate progress.
@@ -111,12 +114,26 @@ export async function extractAttendanceFromImage(
   onStage?: (stage: OcrStage) => void,
 ): Promise<AttendanceExtraction> {
   onStage?.("Uploading...");
-  const image = await preprocessScreenshot(file);
+  // Students get a compressed JPEG: same readable text, a fraction of the bytes,
+  // so the upload and the vision round-trip are much faster on mobile data.
+  const image = await preprocessScreenshot(file, {
+    maxEdge: 1400,
+    format: "image/jpeg",
+    quality: 0.82,
+    scanStep: 3,
+  });
+
+  const key = `${image.dataUrl.length}:${image.dataUrl.slice(-96)}`;
+  if (lastRun && lastRun.key === key) {
+    onStage?.("Done");
+    return lastRun.value;
+  }
 
   onStage?.("Reading Table...");
   const result = await extractAttendanceVision({ data: { imageDataUrl: image.dataUrl } });
 
   if (!result.isCmrAttendancePage) throw new NotCmrScreenshotError();
+
 
   onStage?.("Recognizing Subjects...");
   onStage?.("Extracting Attendance...");
