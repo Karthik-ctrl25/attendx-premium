@@ -3,14 +3,15 @@ import { Play, RotateCcw, SkipForward } from "lucide-react";
 import { useState } from "react";
 
 /**
- * Placeholder tutorial player.
- * Drop the real tutorial file at /public/tutorial.mp4 and set VIDEO_SRC to
- * "/tutorial.mp4" — the player below switches over automatically.
+ * Tutorial player.
+ * Drop the tutorial file at /public/tutorial.mp4 — it is served at "/tutorial.mp4".
+ * Optional poster image: /public/tutorial-poster.jpg
  */
-const VIDEO_SRC: string | null = null;
+const VIDEO_SRC = "/tutorial.mp4";
 
 export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
   const [playing, setPlaying] = useState(false);
+  const [missing, setMissing] = useState(false);
   const [nonce, setNonce] = useState(0);
 
   return (
@@ -31,8 +32,16 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="glass-strong relative aspect-video w-full overflow-hidden rounded-[28px]"
       >
-        {VIDEO_SRC && playing ? (
-          <video src={VIDEO_SRC} controls autoPlay className="size-full object-cover" />
+        {playing && !missing ? (
+          <video
+            src={VIDEO_SRC}
+            poster="/tutorial-poster.jpg"
+            controls
+            autoPlay
+            playsInline
+            onError={() => setMissing(true)}
+            className="size-full object-cover"
+          />
         ) : (
           <div className="absolute inset-0 grid place-items-center">
             <div
@@ -46,7 +55,10 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
               <motion.button
                 type="button"
                 aria-label="Play tutorial video"
-                onClick={() => setPlaying(true)}
+                onClick={() => {
+                  setMissing(false);
+                  setPlaying(true);
+                }}
                 whileTap={{ scale: 0.94 }}
                 whileHover={{ scale: 1.05 }}
                 className="grid size-20 place-items-center rounded-full bg-[image:var(--gradient-ink)] text-ink-foreground shadow-float"
@@ -56,7 +68,7 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
               <div className="text-center">
                 <p className="font-display text-lg font-semibold tracking-tight">Tutorial Video</p>
                 <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  {playing ? "Video coming soon" : "Video Placeholder"}
+                  {missing ? "Add public/tutorial.mp4" : "Tap to play"}
                 </p>
               </div>
             </div>
@@ -69,6 +81,7 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
           type="button"
           onClick={() => {
             setPlaying(false);
+            setMissing(false);
             setNonce((n) => n + 1);
           }}
           className="glass flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition-transform duration-300 hover:-translate-y-0.5"
