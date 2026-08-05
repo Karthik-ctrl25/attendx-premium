@@ -8,6 +8,8 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 export interface TimetableVisionRow {
   /** 0 = Sunday … 6 = Saturday */
   day: number;
@@ -140,8 +142,16 @@ function normalizeTime(raw: string): string {
 }
 
 export const extractTimetableVision = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(validateInput)
-  .handler(async ({ data }): Promise<TimetableVisionResult> => {
+  .handler(async ({ data, context }): Promise<TimetableVisionResult> => {
+    // Admin-only feature: verify the role server-side with the caller's token.
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleError || !isAdmin) throw new Response("Forbidden", { status: 403 });
+
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("AI is not configured for this project.");
 
