@@ -12,7 +12,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { NotificationBell } from "@/components/attendx/NotificationBell";
-import { useDailyReminder } from "@/lib/reminders";
+import { useWeeklyReminder } from "@/lib/reminders";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +46,8 @@ function Brand() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { meta, timetable, updateMeta } = useApp();
-  useDailyReminder(meta, timetable, updateMeta);
+  const { meta, updateMeta } = useApp();
+  useWeeklyReminder(meta, updateMeta);
 
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
