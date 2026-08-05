@@ -50,9 +50,33 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
     setNotice("");
   };
 
+  /**
+   * Lovable's managed OAuth broker (`/~oauth/initiate`) only exists on Lovable
+   * hosting. Anywhere else (Vercel, custom hosts) that path 404s, so we go
+   * straight to Supabase OAuth there.
+   */
   const signInGoogle = async () => {
     setBusy(true);
     reset();
+    const host = window.location.hostname;
+    const onLovable =
+      host.endsWith(".lovable.app") ||
+      host.endsWith(".lovableproject.com") ||
+      host === "localhost" ||
+      host === "127.0.0.1";
+
+    if (!onLovable) {
+      const { error: err } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
+      });
+      if (err) {
+        setError("Could not sign in with Google. Please try again.");
+        setBusy(false);
+      }
+      return;
+    }
+
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
@@ -65,6 +89,7 @@ export function AuthScreen({ onContinue }: { onContinue?: () => void }) {
     onContinue?.();
     setBusy(false);
   };
+
 
   const submitEmail = async () => {
     setBusy(true);
