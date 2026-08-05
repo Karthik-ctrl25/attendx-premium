@@ -17,6 +17,22 @@ export interface PreprocessResult {
   cropped: boolean;
 }
 
+export interface PreprocessOptions {
+  /** Longest edge of the produced image. Smaller = faster upload. */
+  maxEdge?: number;
+  /** "image/png" keeps every pixel; "image/jpeg" is far smaller and faster. */
+  format?: "image/png" | "image/jpeg";
+  /** JPEG quality, 0-1. Ignored for PNG. */
+  quality?: number;
+  /** Sample step for the content-bounds scan. 2-3 is visually identical but much faster. */
+  scanStep?: number;
+}
+
+/** Small in-memory cache so re-uploading the same file never re-encodes it. */
+const cache = new Map<string, PreprocessResult>();
+const cacheKey = (file: File, o: Required<PreprocessOptions>) =>
+  `${file.name}:${file.size}:${file.lastModified}:${o.maxEdge}:${o.format}:${o.quality}`;
+
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
