@@ -164,7 +164,8 @@ export const extractTimetableVision = createServerFn({ method: "POST" })
       headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
       body: JSON.stringify({
         model: "openai/gpt-5.6-sol",
-        reasoning_effort: "low",
+        // Admin-side quality matters more than latency here.
+        reasoning_effort: "medium",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content },
