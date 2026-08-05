@@ -1,10 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Pencil, Plus, Send, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { toast } from "sonner";
 
-import { AdminTimetableUpload } from "@/components/admin/AdminTimetableUpload";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,14 @@ import {
 } from "@/lib/admin.functions";
 import type { TimetableSlotRow } from "@/lib/admin.types";
 import { DEPARTMENTS, SECTIONS, SEMESTERS } from "@/lib/timetable-dataset";
+
+// Lazily loaded: pulls in the timetable OCR pipeline only when an admin
+// actually opens a class.
+const AdminTimetableUpload = lazy(() =>
+  import("@/components/admin/AdminTimetableUpload").then((m) => ({
+    default: m.AdminTimetableUpload,
+  })),
+);
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
@@ -36,7 +43,7 @@ const emptySlot = {
 type SlotDraft = typeof emptySlot;
 
 const selectClass =
-  "h-10 w-full rounded-2xl border border-foreground/10 bg-transparent px-3 text-[12.5px]";
+  "h-10 w-full rounded-2xl border border-foreground/10 bg-transparent px-3 text-[12.5px] text-foreground [&>option]:bg-background [&>option]:text-foreground";
 
 function SlotForm({
   value,
@@ -273,7 +280,15 @@ export function AdminTimetableManager() {
         </GlassCard>
       ) : (
         <>
-          <AdminTimetableUpload scope={scope} onPublished={invalidate} />
+          <Suspense
+            fallback={
+              <GlassCard className="h-24 animate-pulse p-3.5">
+                <span className="sr-only">Loading uploader</span>
+              </GlassCard>
+            }
+          >
+            <AdminTimetableUpload scope={scope} onPublished={invalidate} />
+          </Suspense>
 
           <GlassCard className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3.5">
             <div className="min-w-0">
