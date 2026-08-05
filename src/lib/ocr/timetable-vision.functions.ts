@@ -152,52 +152,18 @@ export const extractTimetableVision = createServerFn({ method: "POST" })
     });
     if (roleError || !isAdmin) throw new Response("Forbidden", { status: 403 });
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI is not configured for this project.");
+    const { generateJson, dataUrlToPart } = await import("./gemini.server");
 
-    const isPdf = data.fileDataUrl.startsWith("data:application/pdf");
-    const content = [
-      {
-        type: "text",
-        text: "Extract EVERY scheduled class from this weekly class timetable as JSON. Work through the grid cell by cell and do not omit any readable row. Subject code, faculty and room may legitimately be blank.",
-      },
-      isPdf
-        ? {
-            type: "file",
-            file: { filename: `${data.fileName}.pdf`, file_data: data.fileDataUrl },
-          }
-        : { type: "image_url", image_url: { url: data.fileDataUrl } },
-    ];
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
-      body: JSON.stringify({
-        model: "openai/gpt-5.6-sol",
-        // Admin-side quality matters more than latency here.
-        reasoning_effort: "medium",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content },
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: { name: "class_timetable", strict: true, schema: SCHEMA },
+    const raw = await generateJson({
+      systemPrompt: SYSTEM_PROMPT,
+      parts: [
+        {
+          text: "Extract EVERY scheduled class from this weekly class timetable as JSON. Work through the grid cell by cell and do not omit any readable row. Subject code, faculty and room may legitimately be blank.",
         },
-      }),
+        dataUrlToPart(data.fileDataUrl),
+      ],
+      schema: SCHEMA,
     });
-
-    if (!response.ok) {
-      const body = await response.text();
-      if (response.status === 429)
-        throw new Error("AI is busy right now. Please try again shortly.");
-      if (response.status === 402)
-        throw new Error("AI credits are exhausted. Add credits to continue using OCR.");
-      throw new Error(`Vision request failed [${response.status}]: ${body.slice(0, 300)}`);
-    }
-
-    const payload = (await response.json()) as { choices?: { message?: { content?: string } }[] };
-    const raw = payload.choices?.[0]?.message?.content ?? "{}";
 
     type Parsed = { rows?: unknown[]; isTimetable?: unknown; headersFound?: unknown };
     let parsed: Parsed;
@@ -206,6 +172,7 @@ export const extractTimetableVision = createServerFn({ method: "POST" })
     } catch {
       throw new Error("The AI response could not be read. Please try again.");
     }
+
 
     const rows: TimetableVisionRow[] = (parsed.rows ?? [])
       .map((item) => {
