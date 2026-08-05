@@ -108,51 +108,19 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(validateInput)
   .handler(async ({ data }): Promise<VisionResult> => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI is not configured for this project.");
+    const { generateJson, dataUrlToPart } = await import("./gemini.server");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-5.6-sol",
-        reasoning_effort: "none",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Extract every course row from this CMR University ERP attendance screenshot as JSON.",
-              },
-              { type: "image_url", image_url: { url: data.imageDataUrl } },
-            ],
-          },
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: { name: "attendance_table", strict: true, schema: SCHEMA },
+    const content = await generateJson({
+      systemPrompt: SYSTEM_PROMPT,
+      parts: [
+        {
+          text: "Extract every course row from this CMR University ERP attendance screenshot as JSON.",
         },
-      }),
+        dataUrlToPart(data.imageDataUrl),
+      ],
+      schema: SCHEMA,
+      thinkingBudget: 0,
     });
-
-    if (!response.ok) {
-      const body = await response.text();
-      if (response.status === 429)
-        throw new Error("AI is busy right now. Please try again shortly.");
-      if (response.status === 402)
-        throw new Error("AI credits are exhausted. Add credits to continue using OCR.");
-      throw new Error(`Vision request failed [${response.status}]: ${body.slice(0, 300)}`);
-    }
-
-    const payload = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const content = payload.choices?.[0]?.message?.content ?? "{}";
 
     type Parsed = { rows?: unknown[]; isCmrAttendancePage?: unknown; headersFound?: unknown };
     let parsed: Parsed;
@@ -161,6 +129,7 @@ export const extractAttendanceVision = createServerFn({ method: "POST" })
     } catch {
       throw new Error("The AI response could not be read. Please try again.");
     }
+
 
     const rows: VisionRow[] = (parsed.rows ?? [])
       .map((raw) => {
