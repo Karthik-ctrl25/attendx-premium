@@ -341,6 +341,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const restoreBackup = useCallback(async (payload: BackupPayload) => {
     const nextMeta = { ...DEFAULT_META, ...payload.meta, setupComplete: true };
+    metaRef.current = nextMeta;
     setMeta(nextMeta);
     setSubjects(payload.subjects ?? []);
     setTimetable(payload.timetable ?? []);
