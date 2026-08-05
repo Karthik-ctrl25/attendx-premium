@@ -111,21 +111,64 @@ function Dashboard() {
           subtitle={todays.length ? `${todays.length} scheduled` : "Nothing scheduled"}
         />
         {todays.length ? (
-          <GlassCard className="divide-y divide-foreground/5 p-2">
-            {todays.map((slot) => (
-              <div key={slot.id} className="flex min-w-0 items-center gap-3 px-3 py-3">
-                <span className="tnum w-12 shrink-0 text-xs font-medium text-muted-foreground">
-                  {slot.start}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{slot.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {slot.room || "Room"} · {slot.session}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </GlassCard>
+          allMarked ? (
+            <GlassCard className="p-8 text-center text-sm text-muted-foreground">
+              All classes completed today.
+            </GlassCard>
+          ) : (
+            <div className="space-y-3">
+              {todays.map((slot) => {
+                const state = marks[slot.id];
+                return (
+                  <GlassCard key={slot.id} className="p-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="tnum w-24 shrink-0 text-xs font-medium text-muted-foreground">
+                        {slot.start}–{slot.end}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{slot.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {[slot.faculty, slot.room].filter(Boolean).join(" · ") || slot.code}
+                        </p>
+                      </div>
+                    </div>
+                    {state ? (
+                      <p className="mt-3 text-xs font-medium text-muted-foreground">
+                        {state === "present" ? "✓ Marked Present" : "✗ Marked Absent"}
+                      </p>
+                    ) : (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <Button
+                          className="h-10 w-full rounded-2xl"
+                          variant="secondary"
+                          onClick={() =>
+                            void mark(slot.code, "present", slot.id, {
+                              name: slot.name,
+                              faculty: slot.faculty,
+                            })
+                          }
+                        >
+                          <CheckCircle2 className="size-4" /> Went
+                        </Button>
+                        <Button
+                          className="h-10 w-full rounded-2xl"
+                          variant="secondary"
+                          onClick={() =>
+                            void mark(slot.code, "absent", slot.id, {
+                              name: slot.name,
+                              faculty: slot.faculty,
+                            })
+                          }
+                        >
+                          <XCircle className="size-4" /> Bunked
+                        </Button>
+                      </div>
+                    )}
+                  </GlassCard>
+                );
+              })}
+            </div>
+          )
         ) : (
           <GlassCard className="p-8 text-center text-sm text-muted-foreground">
             Enjoy the free day.
@@ -133,7 +176,7 @@ function Dashboard() {
         )}
       </section>
 
-      <GlassCard delay={0.1} className="flex min-w-0 items-center gap-3 p-4">
+      <GlassCard delay={0.1} className="mb-2 flex min-w-0 items-center gap-3 p-4">
         <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
           <ShieldCheck className="size-4 text-muted-foreground" />
         </span>
@@ -148,25 +191,6 @@ function Dashboard() {
         </Button>
       </GlassCard>
 
-      <section className="pb-2">
-        <SectionTitle title="Quick actions" />
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            to="/attendance"
-            className="glass glass-hover flex min-w-0 items-center gap-3 rounded-3xl p-4"
-          >
-            <CheckCircle2 className="size-5 shrink-0 text-muted-foreground" />
-            <span className="truncate text-sm font-semibold">Mark attendance</span>
-          </Link>
-          <Link
-            to="/timetable"
-            className="glass glass-hover flex min-w-0 items-center gap-3 rounded-3xl p-4"
-          >
-            <CalendarRange className="size-5 shrink-0 text-muted-foreground" />
-            <span className="truncate text-sm font-semibold">Timetable</span>
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }
