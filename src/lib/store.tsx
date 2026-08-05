@@ -77,6 +77,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     db.loadAll()
       .then((data) => {
         if (cancelled) return;
+        metaRef.current = data.meta;
         setMeta(data.meta);
         setSubjects(data.subjects);
         setTimetable(data.timetable);
