@@ -340,27 +340,70 @@ export async function removeRow(
 
 /* ------------------------------------------------ published class timetable */
 
+interface ClassRow {
+  id: string;
+  department: string;
+  semester: string;
+  section: string;
+  day: number;
+  start_time: string;
+  end_time: string;
+  code: string;
+  name: string;
+  faculty: string;
+  room: string;
+  session: string;
+}
+
+const toSlot = (r: ClassRow): ClassSlot => ({
+  id: r.id,
+  day: r.day,
+  start: r.start_time,
+  end: r.end_time,
+  code: r.code,
+  name: r.name,
+  faculty: r.faculty,
+  room: r.room,
+  session: (r.session === "Lab" ? "Lab" : "Theory") as ClassSlot["session"],
+});
+
 /**
  * Timetable published by an admin for the student's class. When present it is
  * the source of truth, so students automatically receive updates.
+ *
+ * Two layers of defence against a scope that does not match the published rows
+ * byte-for-byte:
+ *  1. every scope string is normalised (trim / collapse spaces / strip
+ *     zero-width characters / uppercase section) on both sides;
+ *  2. if the filtered query returns nothing we re-read without the scope
+ *     filters — RLS already restricts a student to their own class, so any
+ *     readable published row belongs to them; matching then happens locally on
+ *     normalised, case-insensitive values.
+ * Errors are surfaced (never silently swallowed into an empty timetable).
  */
 export async function pullPublishedTimetable(scope: ClassScope): Promise<ClassSlot[]> {
-  const { data } = await supabase
+  const s = normalizeScope(scope);
+  const { data, error } = await supabase
     .from("class_timetable_slots")
     .select("*")
-    .eq("department", scope.department)
-    .eq("semester", scope.semester)
-    .eq("section", scope.section)
+    .eq("department", s.department)
+    .eq("semester", s.semester)
+    .eq("section", s.section)
     .eq("published", true);
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    day: r.day,
-    start: r.start_time,
-    end: r.end_time,
-    code: r.code,
-    name: r.name,
-    faculty: r.faculty,
-    room: r.room,
-    session: (r.session === "Lab" ? "Lab" : "Theory") as ClassSlot["session"],
-  }));
+  if (error) throw error;
+  if (data && data.length) return (data as ClassRow[]).map(toSlot);
+
+  const { data: fallback, error: fbError } = await supabase
+    .from("class_timetable_slots")
+    .select("*")
+    .eq("published", true);
+  if (fbError) throw fbError;
+  const key = `${s.department}|${s.semester}|${s.section}`.toLowerCase();
+  return ((fallback ?? []) as ClassRow[])
+    .filter((r) => {
+      const n = normalizeScope(r);
+      return `${n.department}|${n.semester}|${n.section}`.toLowerCase() === key;
+    })
+    .map(toSlot);
 }
+
