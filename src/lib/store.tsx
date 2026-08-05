@@ -289,22 +289,29 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     await db.replaceTimetable(slots);
   }, []);
 
+  /* Both writers use functional updates so back-to-back calls in the same
+   * tick (onboarding does updateMeta() then completeSetup()) compose instead
+   * of overwriting each other with a stale snapshot. */
+  const patchMeta = useCallback(async (patch: Partial<AppMeta>) => {
+    let saved: AppMeta | null = null;
+    setMeta((prev) => {
+      const next: AppMeta = { ...prev, ...patch };
+      saved = next;
+      return next;
+    });
+    // Flush after the state updater has run so we persist the composed value.
+    await Promise.resolve();
+    if (saved) await db.putMeta(saved);
+  }, []);
+
   const completeSetup = useCallback(
-    async (name: string) => {
-      const next: AppMeta = { ...meta, studentName: name, setupComplete: true };
-      setMeta(next);
-      await db.putMeta(next);
-    },
-    [meta],
+    (name: string) => patchMeta({ studentName: name, setupComplete: true }),
+    [patchMeta],
   );
 
   const updateMeta = useCallback(
-    async (patch: Partial<AppMeta>) => {
-      const next: AppMeta = { ...meta, ...patch };
-      setMeta(next);
-      await db.putMeta(next);
-    },
-    [meta],
+    (patch: Partial<AppMeta>) => patchMeta(patch),
+    [patchMeta],
   );
 
   const exportBackup = useCallback(
