@@ -135,6 +135,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function SetupGate() {
   const { ready, meta } = useApp();
+  const session = useSession();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Theme is applied app-wide — auth and onboarding included.
@@ -145,7 +146,7 @@ function SetupGate() {
   // Password recovery must stay reachable without a completed profile.
   if (pathname === "/reset-password") return <Outlet />;
 
-  if (!ready) {
+  if (!ready || session === undefined) {
     return (
       <div className="grid min-h-dvh place-items-center">
         <div className="glass size-16 animate-pulse rounded-3xl" />
@@ -153,7 +154,11 @@ function SetupGate() {
     );
   }
 
-  if (!meta.setupComplete) return <Onboarding />;
+  // Without a live session every server call (roles, admin, sync) is
+  // unauthorized — send the user back to sign-in instead of rendering a
+  // half-working shell from stale local data.
+  if (!session || !meta.setupComplete) return <Onboarding />;
+
 
   return (
     <ClassSpaceProvider>
