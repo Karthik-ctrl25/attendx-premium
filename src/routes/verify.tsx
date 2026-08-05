@@ -1,6 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 
-import { VerifyAttendance } from "@/components/attendx/VerifyAttendance";
+// Heavy: pulls the OCR uploader and image preprocessing. Loaded on demand so the
+// rest of the student app stays instant.
+const VerifyAttendance = lazy(() =>
+  import("@/components/attendx/VerifyAttendance").then((m) => ({ default: m.VerifyAttendance })),
+);
 
 export const Route = createFileRoute("/verify")({
   component: VerifyPage,
@@ -27,7 +32,13 @@ function VerifyPage() {
   const navigate = useNavigate();
   return (
     <div className="mx-auto w-full min-w-0 max-w-2xl pb-2">
-      <VerifyAttendance onDone={() => navigate({ to: "/" })} />
+      <Suspense
+        fallback={
+          <div className="h-40 animate-pulse rounded-3xl bg-foreground/[0.05]" aria-hidden />
+        }
+      >
+        <VerifyAttendance onDone={() => navigate({ to: "/" })} />
+      </Suspense>
     </div>
   );
 }
