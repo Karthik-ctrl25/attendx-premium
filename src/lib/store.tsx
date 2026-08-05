@@ -207,7 +207,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "class_timetable_slots" },
-        (payload) => {
+        (payload: { new?: unknown; old?: unknown }) => {
           const row = (payload.new ?? payload.old) as Partial<ClassScope> | null;
           if (
             row &&
