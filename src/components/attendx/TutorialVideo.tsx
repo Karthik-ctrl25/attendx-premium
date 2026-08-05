@@ -11,6 +11,7 @@ const VIDEO_SRC = "/tutorial.mp4";
 
 export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
   const [playing, setPlaying] = useState(false);
+  const [missing, setMissing] = useState(false);
   const [nonce, setNonce] = useState(0);
 
   return (
