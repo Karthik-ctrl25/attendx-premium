@@ -188,16 +188,32 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   );
 
   const mark = useCallback(
-    async (code: string, action: AttendanceAction, slotId?: string) => {
-      const subject = subjects.find((s) => s.code === code);
-      if (!subject) return;
+    async (
+      code: string,
+      action: AttendanceAction,
+      slotId?: string,
+      fallback?: { name?: string; faculty?: string },
+    ) => {
+      const existing = subjects.find((s) => s.code === code);
+      // A published timetable can contain a subject the student hasn't imported
+      // yet — start tracking it instead of refusing the tap.
+      const subject: Subject = existing ?? {
+        code,
+        name: fallback?.name || code,
+        faculty: fallback?.faculty || "",
+        present: 0,
+        absent: 0,
+        total: 0,
+      };
       const updated: Subject = {
         ...subject,
         present: subject.present + (action === "present" ? 1 : 0),
         absent: subject.absent + (action === "absent" ? 1 : 0),
         total: subject.total + 1,
       };
-      const nextSubjects = subjects.map((s) => (s.code === code ? updated : s));
+      const nextSubjects = existing
+        ? subjects.map((s) => (s.code === code ? updated : s))
+        : [...subjects, updated];
       const entry: HistoryEntry = {
         id: uid(),
         ts: Date.now(),
@@ -212,6 +228,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [subjects],
   );
+
 
   const undo = useCallback(
     async (entryId: string) => {
