@@ -18,6 +18,8 @@ import {
   pullPublishedTimetable,
   pushPrivateData,
   pushProfile,
+  normalizeScope,
+  normalizeUsn,
   scopeOf,
   type ClassScope,
 } from "./cloud-sync";
@@ -373,6 +375,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * email, department, semester and section. */
   const patchMeta = useCallback(async (patch: Partial<AppMeta>) => {
     const next: AppMeta = { ...metaRef.current, ...patch };
+    // Scope + USN are matched byte-for-byte against the backend, so they are
+    // normalised the moment they enter state (no stray/hidden whitespace).
+    if (next.department || next.semester || next.section) {
+      const s = normalizeScope(next);
+      next.department = s.department;
+      next.semester = s.semester;
+      next.section = s.section;
+    }
+    if (next.usn) next.usn = normalizeUsn(next.usn);
     metaRef.current = next;
     setMeta(next);
     await db.putMeta(next);
