@@ -496,6 +496,8 @@ export type Database = {
           semester: string
         }[]
       }
+      norm_text: { Args: { _v: string }; Returns: string }
+      usn_available: { Args: { _usn: string }; Returns: boolean }
     }
     Enums: {
       app_role: "student" | "cr" | "admin"
