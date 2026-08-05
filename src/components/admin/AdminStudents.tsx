@@ -64,25 +64,43 @@ export function AdminStudents() {
             className="h-10 rounded-2xl pl-9 text-[13px]"
           />
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          <Input
+        <div className="grid gap-2 sm:grid-cols-3">
+          <select
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
-            placeholder="Department"
-            className="h-9 rounded-2xl text-[12.5px]"
-          />
-          <Input
+            className={filterClass}
+          >
+            <option value="">All departments</option>
+            {departments.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+          <select
             value={semester}
             onChange={(e) => setSemester(e.target.value)}
-            placeholder="Semester"
-            className="h-9 rounded-2xl text-[12.5px]"
-          />
-          <Input
+            className={filterClass}
+          >
+            <option value="">All semesters</option>
+            {semesters.map((s) => (
+              <option key={s} value={s}>
+                Semester {s}
+              </option>
+            ))}
+          </select>
+          <select
             value={section}
             onChange={(e) => setSection(e.target.value)}
-            placeholder="Section"
-            className="h-9 rounded-2xl text-[12.5px]"
-          />
+            className={filterClass}
+          >
+            <option value="">All sections</option>
+            {sections.map((s) => (
+              <option key={s} value={s}>
+                Section {s}
+              </option>
+            ))}
+          </select>
         </div>
       </GlassCard>
 

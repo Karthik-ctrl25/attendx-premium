@@ -23,6 +23,7 @@ import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 import { Route as AdminCrRouteImport } from './routes/admin.cr'
 import { Route as AdminPollsRouteImport } from './routes/admin.polls'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminStudentsRouteImport } from './routes/admin.students'
 import { Route as AdminTimetablesRouteImport } from './routes/admin.timetables'
 import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
@@ -104,6 +105,11 @@ const AdminPollsRoute = AdminPollsRouteImport.update({
   path: '/polls',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminStudentsRoute = AdminStudentsRouteImport.update({
   id: '/students',
   path: '/students',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/cr': typeof AdminCrRoute
   '/admin/polls': typeof AdminPollsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/timetables': typeof AdminTimetablesRoute
   '/attendance/$code': typeof AttendanceCodeRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/cr': typeof AdminCrRoute
   '/admin/polls': typeof AdminPollsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/timetables': typeof AdminTimetablesRoute
   '/attendance/$code': typeof AttendanceCodeRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/cr': typeof AdminCrRoute
   '/admin/polls': typeof AdminPollsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/timetables': typeof AdminTimetablesRoute
   '/attendance/$code': typeof AttendanceCodeRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/admin/announcements'
     | '/admin/cr'
     | '/admin/polls'
+    | '/admin/settings'
     | '/admin/students'
     | '/admin/timetables'
     | '/attendance/$code'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/admin/announcements'
     | '/admin/cr'
     | '/admin/polls'
+    | '/admin/settings'
     | '/admin/students'
     | '/admin/timetables'
     | '/attendance/$code'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/admin/announcements'
     | '/admin/cr'
     | '/admin/polls'
+    | '/admin/settings'
     | '/admin/students'
     | '/admin/timetables'
     | '/attendance/$code'
@@ -425,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPollsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/students': {
       id: '/admin/students'
       path: '/students'
@@ -503,6 +522,7 @@ interface AdminRouteChildren {
   AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
   AdminCrRoute: typeof AdminCrRoute
   AdminPollsRoute: typeof AdminPollsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminStudentsRoute: typeof AdminStudentsRoute
   AdminTimetablesRoute: typeof AdminTimetablesRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -513,6 +533,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnnouncementsRoute: AdminAnnouncementsRoute,
   AdminCrRoute: AdminCrRoute,
   AdminPollsRoute: AdminPollsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminStudentsRoute: AdminStudentsRoute,
   AdminTimetablesRoute: AdminTimetablesRoute,
   AdminIndexRoute: AdminIndexRoute,
