@@ -32,8 +32,17 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="glass-strong relative aspect-video w-full overflow-hidden rounded-[28px]"
       >
-        {VIDEO_SRC && playing ? (
-          <video src={VIDEO_SRC} controls autoPlay className="size-full object-cover" />
+        {playing && !missing ? (
+          <video
+            src={VIDEO_SRC}
+            poster="/tutorial-poster.jpg"
+            controls
+            autoPlay
+            playsInline
+            onError={() => setMissing(true)}
+            className="size-full object-cover"
+          />
+        ) : (
         ) : (
           <div className="absolute inset-0 grid place-items-center">
             <div
