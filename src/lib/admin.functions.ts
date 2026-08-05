@@ -390,3 +390,54 @@ export const adminAnalytics = createServerFn({ method: "GET" })
       bySemester: bucket("semester"),
     };
   });
+
+/* --------------------------------------------------- timetable (update) */
+
+export const adminUpdateTimetableSlot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      id: string;
+      day: number;
+      start_time: string;
+      end_time: string;
+      code: string;
+      name: string;
+      faculty: string;
+      room: string;
+      session: string;
+    }) => input,
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context as Ctx);
+    const { id, ...patch } = data;
+    const { error } = await (context as Ctx).supabase
+      .from("class_timetable_slots")
+      .update(patch)
+      .eq("id", id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+/** Distinct Department → Semester → Section combinations that exist today. */
+export const adminListClassScopes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<ClassScopeInput[]> => {
+    await assertAdmin(context as Ctx);
+    const supabase = (context as Ctx).supabase;
+    const [{ data: profiles }, { data: slots }] = await Promise.all([
+      supabase.from("profiles").select("department, semester, section"),
+      supabase.from("class_timetable_slots").select("department, semester, section"),
+    ]);
+    const seen = new Map<string, ClassScopeInput>();
+    for (const r of [...(profiles ?? []), ...(slots ?? [])] as ClassScopeInput[]) {
+      if (!r.department || !r.semester || !r.section) continue;
+      seen.set(`${r.department}|${r.semester}|${r.section}`, r);
+    }
+    return [...seen.values()].sort(
+      (a, b) =>
+        a.department.localeCompare(b.department) ||
+        a.semester.localeCompare(b.semester) ||
+        a.section.localeCompare(b.section),
+    );
+  });
