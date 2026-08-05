@@ -8,11 +8,16 @@ import { GlassCard } from "@/components/attendx/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  adminListClassScopes,
   adminListStudents,
   adminResetOnboarding,
   adminSetStudentDisabled,
 } from "@/lib/admin.functions";
 import type { AdminStudent } from "@/lib/admin.types";
+import { DEPARTMENTS, SECTIONS, SEMESTERS } from "@/lib/timetable-dataset";
+
+const filterClass =
+  "h-10 w-full rounded-2xl border border-foreground/10 bg-transparent px-3 text-[12.5px]";
 
 export function AdminStudents() {
   const qc = useQueryClient();
