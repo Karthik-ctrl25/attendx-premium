@@ -30,10 +30,36 @@ export interface ClassScope {
   section: string;
 }
 
-export const scopeOf = (meta: AppMeta): ClassScope | null =>
-  meta.department && meta.semester && meta.section
-    ? { department: meta.department, semester: meta.semester, section: meta.section }
-    : null;
+/** Trim, collapse inner whitespace and strip zero-width / non-breaking chars.
+ *  Mirrors public.norm_text() in the database so both sides agree. */
+export const normText = (v: string | null | undefined): string =>
+  (v ?? "")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export const normalizeScope = (s: ClassScope): ClassScope => ({
+  department: normText(s.department),
+  semester: normText(s.semester),
+  section: normText(s.section).toUpperCase(),
+});
+
+export const normalizeUsn = (v: string | null | undefined): string =>
+  normText(v).replace(/\s+/g, "").toUpperCase();
+
+export const scopeOf = (meta: AppMeta): ClassScope | null => {
+  const s = normalizeScope(meta);
+  return s.department && s.semester && s.section ? s : null;
+};
+
+/** True when no other account already owns this USN. */
+export async function isUsnAvailable(usn: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("usn_available", { _usn: normalizeUsn(usn) });
+  if (error) throw error;
+  return data !== false;
+}
+
 
 export async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
