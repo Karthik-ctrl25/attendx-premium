@@ -159,7 +159,15 @@ function SetupGate() {
   // Without a live session every server call (roles, admin, sync) is
   // unauthorized — send the user back to sign-in instead of rendering a
   // half-working shell from stale local data.
-  if (!session || !meta.setupComplete) return <Onboarding />;
+  if (!session) return <Onboarding />;
+
+  // The admin console is a separate application: no student shell, no student
+  // navigation, and no onboarding requirement.
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <Outlet />;
+
+  if (!meta.setupComplete) return <Onboarding />;
+
+
 
 
   return (
