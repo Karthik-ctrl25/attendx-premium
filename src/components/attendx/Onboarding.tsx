@@ -10,12 +10,17 @@ import { AttendanceReview } from "@/components/attendx/AttendanceReview";
 import { DetailsStep, detailsReady, type StudentDetails } from "@/components/attendx/DetailsStep";
 import { ErpShortcut } from "@/components/attendx/ErpShortcut";
 import { TutorialVideo } from "@/components/attendx/TutorialVideo";
+import { toast } from "sonner";
+
 import { getTimetableFor } from "@/lib/timetable-dataset";
+import { isUsnAvailable, normalizeUsn } from "@/lib/cloud-sync";
 import { useApp } from "@/lib/store";
 import { useSession } from "@/lib/session";
 import type { ClassSlot, Subject } from "@/lib/types";
 
 const STEPS = ["Details", "Your class", "Tutorial", "Attendance"];
+/** CMR USN — e.g. 24BBTEC021 / 24BBCSE143 / 24BBAIM052 */
+const USN_PATTERN = /^\d{2}BB[A-Z]{3}\d{3}$/;
 const LOW_CONFIDENCE = 70;
 
 export function Onboarding() {
@@ -66,6 +71,24 @@ export function Onboarding() {
 
   const next = async () => {
     if (step === 0) {
+      const usn = normalizeUsn(details.usn);
+      if (!USN_PATTERN.test(usn)) {
+        toast.error("Enter a valid USN, e.g. 24BBTEC021.");
+        return;
+      }
+      setSaving(true);
+      try {
+        if (!(await isUsnAvailable(usn))) {
+          toast.error("This USN is already registered.");
+          return;
+        }
+      } catch {
+        toast.error("Couldn't verify your USN. Check your connection and try again.");
+        return;
+      } finally {
+        setSaving(false);
+      }
+      setDetails((d) => ({ ...d, usn }));
       setStep(1);
       return;
     }
@@ -92,7 +115,7 @@ export function Onboarding() {
       }
       await updateMeta({
         studentName: details.studentName.trim(),
-        usn: details.usn.trim(),
+        usn: normalizeUsn(details.usn),
         email: details.email.trim(),
         photo: details.photo,
         department: choice.department,
