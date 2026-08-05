@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { supabase } from "@/integrations/supabase/client";
+
 import { db, DEFAULT_META } from "./db";
 import {
   pullPrivateData,
@@ -17,7 +19,9 @@ import {
   pushPrivateData,
   pushProfile,
   scopeOf,
+  type ClassScope,
 } from "./cloud-sync";
+
 import { useSession } from "./session";
 import type {
   AppMeta,
