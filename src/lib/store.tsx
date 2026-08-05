@@ -356,7 +356,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetApp = useCallback(async () => {
-    setMeta({ ...DEFAULT_META, createdAt: Date.now() });
+    const fresh = { ...DEFAULT_META, createdAt: Date.now() };
+    metaRef.current = fresh;
+    setMeta(fresh);
     setSubjects([]);
     setTimetable([]);
     setHistory([]);
