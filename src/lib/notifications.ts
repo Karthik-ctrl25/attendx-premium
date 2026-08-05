@@ -7,7 +7,6 @@
  */
 import type { Announcement, AppMeta, ClassEvent, ClassSlot, Poll } from "./types";
 import { pendingSemester, SEMESTER_LENGTH_DAYS } from "./semester";
-import { todayKey } from "./reminders";
 
 export type NotificationKind =
   | "attendance"
@@ -37,37 +36,18 @@ export function buildNotifications(input: {
   events: ClassEvent[];
   now?: number;
 }): AppNotification[] {
-  const { meta, timetable, announcements, polls, events } = input;
+  const { meta, announcements, polls, events } = input;
   const now = input.now ?? Date.now();
   const date = new Date(now);
   const list: AppNotification[] = [];
-
-  // Daily attendance reminder — only once the reminder hour has passed.
-  const [rh, rm] = (meta.reminderTime || "19:00").split(":").map(Number);
-  const dueToday = date.getHours() * 60 + date.getMinutes() >= (rh || 19) * 60 + (rm || 0);
-  const todaysClasses = timetable.filter((s) => s.day === date.getDay()).length;
-  if (meta.reminderEnabled !== false && dueToday && todaysClasses > 0) {
-    const start = new Date(date);
-    start.setHours(rh || 19, rm || 0, 0, 0);
-    list.push({
-      id: `attendance-${todayKey(date)}`,
-      kind: "attendance",
-      title: "Mark today's attendance",
-      body: `Did you attend today's ${todaysClasses} class${todaysClasses > 1 ? "es" : ""}?`,
-      ts: start.getTime(),
-      to: "/attendance",
-    });
-  }
 
   // Weekly ERP verification.
   if (!meta.lastVerifiedAt || now - meta.lastVerifiedAt >= 7 * DAY) {
     list.push({
       id: `verify-${Math.floor(now / DAY)}`,
       kind: "verify",
-      title: "Verify attendance with ERP",
-      body: meta.lastVerifiedAt
-        ? `Last verified ${new Date(meta.lastVerifiedAt).toLocaleDateString()}`
-        : "You haven't verified against the ERP yet.",
+      title: "\uD83D\uDCF8 Weekly attendance check",
+      body: "It's been a week since your last attendance verification. Open the CMR ERP, take a screenshot and upload it into AttendX.",
       ts: (meta.lastVerifiedAt ?? now - 7 * DAY) + 7 * DAY,
       to: "/verify",
     });

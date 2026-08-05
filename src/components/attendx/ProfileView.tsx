@@ -409,9 +409,9 @@ export function DangerZone() {
           <TriangleAlert className="size-4 text-bad" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-semibold text-bad">Reset all data</span>
+          <span className="block truncate text-[13px] font-semibold text-bad">Reset local cache</span>
           <span className="block truncate text-[11px] text-muted-foreground">
-            Remove everything stored on this device
+            Clear cached data on this device — your account stays intact
           </span>
         </span>
       </button>
@@ -425,8 +425,8 @@ export function DangerZone() {
           <TriangleAlert className="size-4 text-bad" />
         </span>
         <p className="min-w-0 flex-1 text-sm text-muted-foreground">
-          This will permanently remove all attendance, timetable and profile data stored on this
-          device.
+          This clears the cached attendance, timetable and profile data on this device. Your
+          account and cloud data are not deleted — they reload on your next sign-in.
         </p>
       </div>
       <Input
@@ -445,13 +445,13 @@ export function DangerZone() {
             setBusy(true);
             try {
               await resetApp();
-              toast("All data removed");
+              toast("Local cache cleared");
             } finally {
               setBusy(false);
             }
           }}
         >
-          Reset all data
+          Reset local cache
         </Button>
         <Button
           variant="secondary"
