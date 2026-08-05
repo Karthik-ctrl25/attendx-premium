@@ -5,7 +5,7 @@
  * Prompts, schemas and JSON parsing live in the calling modules.
  */
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-3.5-flash";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 export type GeminiPart =
@@ -72,9 +72,10 @@ export async function generateJson(options: {
   }
 
   const payload = (await response.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[];
   };
   const text = (payload.candidates?.[0]?.content?.parts ?? [])
+    .filter((p) => !p.thought)
     .map((p) => p.text ?? "")
     .join("")
     .trim();
