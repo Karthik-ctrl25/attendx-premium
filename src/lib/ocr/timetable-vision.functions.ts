@@ -30,23 +30,29 @@ export interface TimetableVisionResult {
   headersFound: string[];
 }
 
-const SYSTEM_PROMPT = `You read weekly college CLASS TIMETABLE documents (image, screenshot, photo or PDF page).
+const SYSTEM_PROMPT = `You read weekly college CLASS TIMETABLE documents (image, screenshot, scanned photo or PDF page), typically from CMR University.
 
 STEP 1 — LAYOUT CHECK.
-A timetable shows weekday rows or columns (Monday…Saturday) crossed with time periods, each cell holding a subject/course.
-Set isTimetable true only when you can see weekdays AND time periods AND subject entries. Otherwise set it false and return an EMPTY rows array.
+A timetable crosses weekdays (Monday…Saturday) with time periods, each cell holding a class.
+The grid may be in EITHER orientation:
+  (a) days down the rows, time periods across the columns, or
+  (b) time periods down the rows, days across the columns.
+Work out the orientation from the header row AND the header column before extracting; never assume. If the axes are reversed compared to the usual layout, still map each cell to the correct day and time.
+Set isTimetable true when you can see weekdays AND time periods AND class entries. Otherwise set it false and return an EMPTY rows array.
 
-STEP 2 — EXTRACTION (only when isTimetable is true).
-Return ONE object per scheduled class occurrence. A subject that occurs on three days produces three rows.
+STEP 2 — COMPLETE EXTRACTION (only when isTimetable is true).
+Scan the grid cell by cell, row by row, from the first weekday to the last, and emit ONE object per scheduled class occurrence. A subject occurring on three days produces three rows.
+- Read EVERY visible class cell. Do not stop early, do not sample, do not summarise, and never drop a row just because the scan is blurry, skewed, low-contrast, handwritten or slightly cropped — if a human could read it, extract it and lower that row's confidence instead.
+- MERGED CELLS: a cell spanning several periods (common for labs) is ONE row covering the full merged time range. A cell spanning several days produces one row PER day. Use the outer grid lines to judge the span.
 - day: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday.
-- startTime / endTime: 24-hour "HH:MM". Convert 9:00 AM -> "09:00", 1.30 PM -> "13:30". College periods before 08:00 printed without AM/PM are afternoon (e.g. "1:00-2:00" -> "13:00"/"14:00").
-- code: subject/course code exactly as printed (e.g. 4ENCE2061, 24BSCS101). Read character by character, never guess or "fix" it. Empty string if none printed.
-- name: subject name. faculty: faculty/teacher name. room: room, hall or lab number. Empty string when not printed.
-- session: "Lab" when the cell says lab/practical/workshop, otherwise "Theory".
+- startTime / endTime: 24-hour "HH:MM". Convert 9:00 AM -> "09:00", 1.30 PM -> "13:30". College periods before 08:00 printed without AM/PM are afternoon (e.g. "1:00-2:00" -> "13:00"/"14:00"). Take the period boundaries from the header when the cell itself omits them.
+- code: subject/course code exactly as printed (e.g. 4ENCE2061, 24BSCS101). Read character by character; never guess, never "fix", never invent one. MANY CMR timetables print no code at all — in that case return an empty string. An empty code is perfectly valid and is NOT an error.
+- name: subject name as printed (expand only obvious in-document abbreviations).
+- faculty: teacher name. room: room, hall or lab number. Both are frequently absent — return an empty string rather than guessing.
+- session: "Lab" when the cell mentions lab/practical/workshop, otherwise "Theory".
 - Skip BREAK, LUNCH, RECESS, free/blank cells, library and sports rows.
-- Merged cells spanning several periods are ONE row spanning the whole time range.
-- confidence: 0-100 certainty for that row. Use below 90 whenever any cell is blurry, cropped, merged ambiguously or inferred.
-- Never invent classes.
+- confidence: 0-100 certainty for THAT row. 95+ when the cell is crisp and unambiguous; 70-90 when text is faint, merged spans are inferred, or a field is partly cropped; below 70 only when you are genuinely unsure of the reading. Missing code/faculty/room does NOT reduce confidence when the cell simply doesn't print them.
+- Never invent classes and never duplicate a class you already emitted.
 
 Do NOT try to determine department, semester or section — they are already known.`;
 
