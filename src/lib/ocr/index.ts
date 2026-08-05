@@ -152,7 +152,13 @@ export async function extractAttendanceFromImage(
   if (!subjects.length) throw new NotCmrScreenshotError();
   onStage?.("Done");
 
-  return { subjects, confidence: result.confidence, headersFound: result.headersFound };
+  const extraction = {
+    subjects,
+    confidence: result.confidence,
+    headersFound: result.headersFound,
+  };
+  lastRun = { key, value: extraction };
+  return extraction;
 }
 
 export { preprocessScreenshot };
