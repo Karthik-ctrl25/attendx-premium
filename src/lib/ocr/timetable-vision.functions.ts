@@ -149,7 +149,7 @@ export const extractTimetableVision = createServerFn({ method: "POST" })
     const content = [
       {
         type: "text",
-        text: "Extract every scheduled class from this weekly class timetable as JSON.",
+        text: "Extract EVERY scheduled class from this weekly class timetable as JSON. Work through the grid cell by cell and do not omit any readable row. Subject code, faculty and room may legitimately be blank.",
       },
       isPdf
         ? {
