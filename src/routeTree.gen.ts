@@ -18,6 +18,13 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TimetableRouteImport } from './routes/timetable'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
+import { Route as AdminCrRouteImport } from './routes/admin.cr'
+import { Route as AdminPollsRouteImport } from './routes/admin.polls'
+import { Route as AdminStudentsRouteImport } from './routes/admin.students'
+import { Route as AdminTimetablesRouteImport } from './routes/admin.timetables'
 import { Route as AttendanceIndexRouteImport } from './routes/attendance.index'
 import { Route as AttendanceCodeRouteImport } from './routes/attendance.$code'
 import { Route as ProfileIndexRouteImport } from './routes/profile.index'
@@ -72,6 +79,41 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
+  id: '/announcements',
+  path: '/announcements',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCrRoute = AdminCrRouteImport.update({
+  id: '/cr',
+  path: '/cr',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPollsRoute = AdminPollsRouteImport.update({
+  id: '/polls',
+  path: '/polls',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStudentsRoute = AdminStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTimetablesRoute = AdminTimetablesRouteImport.update({
+  id: '/timetables',
+  path: '/timetables',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AttendanceIndexRoute = AttendanceIndexRouteImport.update({
   id: '/attendance/',
   path: '/attendance/',
@@ -115,7 +157,7 @@ const ProfileNotificationsRoute = ProfileNotificationsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/analytics': typeof AnalyticsRoute
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
@@ -123,37 +165,50 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/cr': typeof AdminCrRoute
+  '/admin/polls': typeof AdminPollsRoute
+  '/admin/students': typeof AdminStudentsRoute
+  '/admin/timetables': typeof AdminTimetablesRoute
   '/attendance/$code': typeof AttendanceCodeRoute
   '/profile/about': typeof ProfileAboutRoute
   '/profile/academic': typeof ProfileAcademicRoute
   '/profile/appearance': typeof ProfileAppearanceRoute
   '/profile/links': typeof ProfileLinksRoute
   '/profile/notifications': typeof ProfileNotificationsRoute
+  '/admin/': typeof AdminIndexRoute
   '/attendance/': typeof AttendanceIndexRoute
   '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
   '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/cr': typeof AdminCrRoute
+  '/admin/polls': typeof AdminPollsRoute
+  '/admin/students': typeof AdminStudentsRoute
+  '/admin/timetables': typeof AdminTimetablesRoute
   '/attendance/$code': typeof AttendanceCodeRoute
   '/profile/about': typeof ProfileAboutRoute
   '/profile/academic': typeof ProfileAcademicRoute
   '/profile/appearance': typeof ProfileAppearanceRoute
   '/profile/links': typeof ProfileLinksRoute
   '/profile/notifications': typeof ProfileNotificationsRoute
+  '/admin': typeof AdminIndexRoute
   '/attendance': typeof AttendanceIndexRoute
   '/profile': typeof ProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/analytics': typeof AnalyticsRoute
   '/class': typeof ClassRoute
   '/history': typeof HistoryRoute
@@ -161,12 +216,19 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/timetable': typeof TimetableRoute
   '/verify': typeof VerifyRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
+  '/admin/cr': typeof AdminCrRoute
+  '/admin/polls': typeof AdminPollsRoute
+  '/admin/students': typeof AdminStudentsRoute
+  '/admin/timetables': typeof AdminTimetablesRoute
   '/attendance/$code': typeof AttendanceCodeRoute
   '/profile/about': typeof ProfileAboutRoute
   '/profile/academic': typeof ProfileAcademicRoute
   '/profile/appearance': typeof ProfileAppearanceRoute
   '/profile/links': typeof ProfileLinksRoute
   '/profile/notifications': typeof ProfileNotificationsRoute
+  '/admin/': typeof AdminIndexRoute
   '/attendance/': typeof AttendanceIndexRoute
   '/profile/': typeof ProfileIndexRoute
 }
@@ -182,30 +244,43 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/timetable'
     | '/verify'
+    | '/admin/analytics'
+    | '/admin/announcements'
+    | '/admin/cr'
+    | '/admin/polls'
+    | '/admin/students'
+    | '/admin/timetables'
     | '/attendance/$code'
     | '/profile/about'
     | '/profile/academic'
     | '/profile/appearance'
     | '/profile/links'
     | '/profile/notifications'
+    | '/admin/'
     | '/attendance/'
     | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/analytics'
     | '/class'
     | '/history'
     | '/reset-password'
     | '/timetable'
     | '/verify'
+    | '/admin/analytics'
+    | '/admin/announcements'
+    | '/admin/cr'
+    | '/admin/polls'
+    | '/admin/students'
+    | '/admin/timetables'
     | '/attendance/$code'
     | '/profile/about'
     | '/profile/academic'
     | '/profile/appearance'
     | '/profile/links'
     | '/profile/notifications'
+    | '/admin'
     | '/attendance'
     | '/profile'
   id:
@@ -219,19 +294,26 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/timetable'
     | '/verify'
+    | '/admin/analytics'
+    | '/admin/announcements'
+    | '/admin/cr'
+    | '/admin/polls'
+    | '/admin/students'
+    | '/admin/timetables'
     | '/attendance/$code'
     | '/profile/about'
     | '/profile/academic'
     | '/profile/appearance'
     | '/profile/links'
     | '/profile/notifications'
+    | '/admin/'
     | '/attendance/'
     | '/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AnalyticsRoute: typeof AnalyticsRoute
   ClassRoute: typeof ClassRoute
   HistoryRoute: typeof HistoryRoute
@@ -308,6 +390,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/announcements': {
+      id: '/admin/announcements'
+      path: '/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AdminAnnouncementsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/cr': {
+      id: '/admin/cr'
+      path: '/cr'
+      fullPath: '/admin/cr'
+      preLoaderRoute: typeof AdminCrRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/polls': {
+      id: '/admin/polls'
+      path: '/polls'
+      fullPath: '/admin/polls'
+      preLoaderRoute: typeof AdminPollsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/students': {
+      id: '/admin/students'
+      path: '/students'
+      fullPath: '/admin/students'
+      preLoaderRoute: typeof AdminStudentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/timetables': {
+      id: '/admin/timetables'
+      path: '/timetables'
+      fullPath: '/admin/timetables'
+      preLoaderRoute: typeof AdminTimetablesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/attendance/': {
       id: '/attendance/'
       path: '/attendance'
@@ -367,6 +498,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
+  AdminCrRoute: typeof AdminCrRoute
+  AdminPollsRoute: typeof AdminPollsRoute
+  AdminStudentsRoute: typeof AdminStudentsRoute
+  AdminTimetablesRoute: typeof AdminTimetablesRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminAnnouncementsRoute: AdminAnnouncementsRoute,
+  AdminCrRoute: AdminCrRoute,
+  AdminPollsRoute: AdminPollsRoute,
+  AdminStudentsRoute: AdminStudentsRoute,
+  AdminTimetablesRoute: AdminTimetablesRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface ProfileRouteChildren {
   ProfileAboutRoute: typeof ProfileAboutRoute
   ProfileAcademicRoute: typeof ProfileAcademicRoute
@@ -390,7 +543,7 @@ const ProfileRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AnalyticsRoute: AnalyticsRoute,
   ClassRoute: ClassRoute,
   HistoryRoute: HistoryRoute,
