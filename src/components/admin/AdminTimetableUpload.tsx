@@ -212,11 +212,21 @@ export function AdminTimetableUpload({
   const pending = useMemo(() => pendingApproval(slots), [slots]);
   const canPublish = slots.length > 0 && errors === 0 && pending === 0;
 
-  const setValidated = useCallback(
-    (next: DraftSlot[]) =>
-      setSlots(validateSlots(next).sort((a, b) => a.day - b.day || a.start_time.localeCompare(b.start_time))),
-    [],
-  );
+  const setValidated = useCallback((next: DraftSlot[]) => {
+    // Validate as if nothing were approved so a broken row can never be locked in,
+    // then re-apply approvals and clear warnings for the rows that pass.
+    const raw = validateSlots(next.map((s) => ({ ...s, approved: false })));
+    const merged = raw.map((s, i) => ({
+      ...s,
+      approved: Boolean(next[i]?.approved) && !s.issues.some((x) => x !== "low-confidence"),
+    }));
+    setSlots(
+      validateSlots(merged).sort(
+        (a, b) => a.day - b.day || a.start_time.localeCompare(b.start_time),
+      ),
+    );
+  }, []);
+
 
   const onFile = useCallback(
     async (file: File | undefined) => {
