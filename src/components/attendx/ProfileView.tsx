@@ -20,6 +20,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/attendx/Avatar";
+import { isUsnAvailable, normalizeUsn } from "@/lib/cloud-sync";
 import { ClassPicker, type ClassChoice } from "@/components/attendx/ClassPicker";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
 import { Button } from "@/components/ui/button";
@@ -221,8 +222,17 @@ export function AcademicDetailsCard() {
   const save = async () => {
     setSaving(true);
     try {
+      const clean = normalizeUsn(usn);
+      if (!/^\d{2}BB[A-Z]{3}\d{3}$/.test(clean)) {
+        toast.error("Enter a valid USN, e.g. 24BBTEC021.");
+        return;
+      }
+      if (!(await isUsnAvailable(clean))) {
+        toast.error("This USN is already registered.");
+        return;
+      }
       await updateMeta({
-        usn: usn.trim(),
+        usn: clean,
         department: draft.department,
         semester: draft.semester,
         section: draft.section,
