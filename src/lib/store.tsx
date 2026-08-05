@@ -289,19 +289,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     await db.replaceTimetable(slots);
   }, []);
 
-  /* Both writers use functional updates so back-to-back calls in the same
-   * tick (onboarding does updateMeta() then completeSetup()) compose instead
-   * of overwriting each other with a stale snapshot. */
+  /* Both writers go through patchMeta, which composes onto a ref mirror
+   * instead of the render-scoped `meta` snapshot. Onboarding calls
+   * updateMeta() then completeSetup() in the same tick; with the old stale
+   * closure the second call re-wrote the pre-update object and wiped USN,
+   * email, department, semester and section. */
   const patchMeta = useCallback(async (patch: Partial<AppMeta>) => {
-    let saved: AppMeta | null = null;
-    setMeta((prev) => {
-      const next: AppMeta = { ...prev, ...patch };
-      saved = next;
-      return next;
-    });
-    // Flush after the state updater has run so we persist the composed value.
-    await Promise.resolve();
-    if (saved) await db.putMeta(saved);
+    const next: AppMeta = { ...metaRef.current, ...patch };
+    metaRef.current = next;
+    setMeta(next);
+    await db.putMeta(next);
   }, []);
 
   const completeSetup = useCallback(
