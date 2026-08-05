@@ -55,7 +55,10 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
               <motion.button
                 type="button"
                 aria-label="Play tutorial video"
-                onClick={() => setPlaying(true)}
+                onClick={() => {
+                  setMissing(false);
+                  setPlaying(true);
+                }}
                 whileTap={{ scale: 0.94 }}
                 whileHover={{ scale: 1.05 }}
                 className="grid size-20 place-items-center rounded-full bg-[image:var(--gradient-ink)] text-ink-foreground shadow-float"
