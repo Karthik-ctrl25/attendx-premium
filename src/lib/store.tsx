@@ -18,6 +18,8 @@ import {
   pullPublishedTimetable,
   pushPrivateData,
   pushProfile,
+  normalizeScope,
+  normalizeUsn,
   scopeOf,
   type ClassScope,
 } from "./cloud-sync";
@@ -129,20 +131,22 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         ]);
         if (cancelled) return;
         if (hasProfile && patch.setupComplete) {
-          // The profile page is the source of truth for the academic scope:
-          // a locally saved Department / Semester / Section is never replaced
-          // by hydration, and blank remote columns never wipe local values.
+          // The profiles row is the single source of truth for the academic
+          // scope. A non-empty remote value always wins — a stale value cached
+          // on one device must never pin a student out of their class — while
+          // blank remote columns fall back to whatever is stored locally.
           const prev = metaRef.current;
           const nextMeta = { ...DEFAULT_META, ...prev, ...patch } as AppMeta;
-          nextMeta.department = prev.department || patch.department || "";
-          nextMeta.semester = prev.semester || patch.semester || "";
-          nextMeta.section = prev.section || patch.section || "";
-          nextMeta.usn = prev.usn || patch.usn || "";
-          nextMeta.email = prev.email || patch.email || session?.user.email || "";
-          nextMeta.studentName = prev.studentName || patch.studentName || "";
+          nextMeta.department = patch.department || prev.department || "";
+          nextMeta.semester = patch.semester || prev.semester || "";
+          nextMeta.section = patch.section || prev.section || "";
+          nextMeta.usn = patch.usn || prev.usn || "";
+          nextMeta.email = patch.email || prev.email || session?.user.email || "";
+          nextMeta.studentName = patch.studentName || prev.studentName || "";
           metaRef.current = nextMeta;
           setMeta(nextMeta);
           await db.putMeta(nextMeta);
+
 
           if (remote.subjects.length) {
             setSubjects(remote.subjects);
@@ -371,6 +375,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * email, department, semester and section. */
   const patchMeta = useCallback(async (patch: Partial<AppMeta>) => {
     const next: AppMeta = { ...metaRef.current, ...patch };
+    // Scope + USN are matched byte-for-byte against the backend, so they are
+    // normalised the moment they enter state (no stray/hidden whitespace).
+    if (next.department || next.semester || next.section) {
+      const s = normalizeScope(next);
+      next.department = s.department;
+      next.semester = s.semester;
+      next.section = s.section;
+    }
+    if (next.usn) next.usn = normalizeUsn(next.usn);
     metaRef.current = next;
     setMeta(next);
     await db.putMeta(next);

@@ -30,10 +30,37 @@ export interface ClassScope {
   section: string;
 }
 
-export const scopeOf = (meta: AppMeta): ClassScope | null =>
-  meta.department && meta.semester && meta.section
-    ? { department: meta.department, semester: meta.semester, section: meta.section }
-    : null;
+/** Trim, collapse inner whitespace and strip zero-width / non-breaking chars.
+ *  Mirrors public.norm_text() in the database so both sides agree. */
+export const normText = (v: string | null | undefined): string =>
+  (v ?? "")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export const normalizeScope = (s: Partial<ClassScope>): ClassScope => ({
+  department: normText(s.department),
+  semester: normText(s.semester),
+  section: normText(s.section).toUpperCase(),
+});
+
+
+export const normalizeUsn = (v: string | null | undefined): string =>
+  normText(v).replace(/\s+/g, "").toUpperCase();
+
+export const scopeOf = (meta: AppMeta): ClassScope | null => {
+  const s = normalizeScope(meta);
+  return s.department && s.semester && s.section ? s : null;
+};
+
+/** True when no other account already owns this USN. */
+export async function isUsnAvailable(usn: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("usn_available", { _usn: normalizeUsn(usn) });
+  if (error) throw error;
+  return data !== false;
+}
+
 
 export async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
@@ -57,12 +84,12 @@ export async function pullProfile(
     hasProfile: true,
     patch: {
       studentName: profile.student_name || "",
-      usn: profile.usn || "",
+      usn: normalizeUsn(profile.usn),
       email: profile.email || "",
       photo: profile.photo ?? "",
-      department: profile.department || "",
-      semester: profile.semester || "",
-      section: profile.section || "",
+      department: normText(profile.department),
+      semester: normText(profile.semester),
+      section: normText(profile.section).toUpperCase(),
       university: profile.university,
       theme: profile.theme === "dark" ? "dark" : "light",
       reminderEnabled: profile.reminder_enabled,
@@ -79,12 +106,12 @@ export async function pushProfile(userId: string, meta: AppMeta) {
   const { error } = await supabase.from("profiles").upsert({
     id: userId,
     student_name: meta.studentName ?? "",
-    usn: meta.usn ?? "",
+    usn: normalizeUsn(meta.usn),
     email: meta.email ?? "",
     photo: meta.photo ?? null,
-    department: meta.department ?? "",
-    semester: meta.semester ?? "",
-    section: meta.section ?? "",
+    department: normText(meta.department),
+    semester: normText(meta.semester),
+    section: normText(meta.section).toUpperCase(),
     university: meta.university || "CMR University",
     theme: meta.theme === "dark" ? "dark" : "light",
     reminder_enabled: meta.reminderEnabled !== false,
@@ -340,27 +367,70 @@ export async function removeRow(
 
 /* ------------------------------------------------ published class timetable */
 
+interface ClassRow {
+  id: string;
+  department: string;
+  semester: string;
+  section: string;
+  day: number;
+  start_time: string;
+  end_time: string;
+  code: string;
+  name: string;
+  faculty: string;
+  room: string;
+  session: string;
+}
+
+const toSlot = (r: ClassRow): ClassSlot => ({
+  id: r.id,
+  day: r.day,
+  start: r.start_time,
+  end: r.end_time,
+  code: r.code,
+  name: r.name,
+  faculty: r.faculty,
+  room: r.room,
+  session: (r.session === "Lab" ? "Lab" : "Theory") as ClassSlot["session"],
+});
+
 /**
  * Timetable published by an admin for the student's class. When present it is
  * the source of truth, so students automatically receive updates.
+ *
+ * Two layers of defence against a scope that does not match the published rows
+ * byte-for-byte:
+ *  1. every scope string is normalised (trim / collapse spaces / strip
+ *     zero-width characters / uppercase section) on both sides;
+ *  2. if the filtered query returns nothing we re-read without the scope
+ *     filters — RLS already restricts a student to their own class, so any
+ *     readable published row belongs to them; matching then happens locally on
+ *     normalised, case-insensitive values.
+ * Errors are surfaced (never silently swallowed into an empty timetable).
  */
 export async function pullPublishedTimetable(scope: ClassScope): Promise<ClassSlot[]> {
-  const { data } = await supabase
+  const s = normalizeScope(scope);
+  const { data, error } = await supabase
     .from("class_timetable_slots")
     .select("*")
-    .eq("department", scope.department)
-    .eq("semester", scope.semester)
-    .eq("section", scope.section)
+    .eq("department", s.department)
+    .eq("semester", s.semester)
+    .eq("section", s.section)
     .eq("published", true);
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    day: r.day,
-    start: r.start_time,
-    end: r.end_time,
-    code: r.code,
-    name: r.name,
-    faculty: r.faculty,
-    room: r.room,
-    session: (r.session === "Lab" ? "Lab" : "Theory") as ClassSlot["session"],
-  }));
+  if (error) throw error;
+  if (data && data.length) return (data as ClassRow[]).map(toSlot);
+
+  const { data: fallback, error: fbError } = await supabase
+    .from("class_timetable_slots")
+    .select("*")
+    .eq("published", true);
+  if (fbError) throw fbError;
+  const key = `${s.department}|${s.semester}|${s.section}`.toLowerCase();
+  return ((fallback ?? []) as ClassRow[])
+    .filter((r) => {
+      const n = normalizeScope(r);
+      return `${n.department}|${n.semester}|${n.section}`.toLowerCase() === key;
+    })
+    .map(toSlot);
 }
+
