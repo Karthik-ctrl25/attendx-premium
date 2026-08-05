@@ -4,7 +4,9 @@ import { Check, Pencil, Plus, Send, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { AdminTimetableUpload } from "@/components/admin/AdminTimetableUpload";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
