@@ -63,6 +63,9 @@ const uid = () => `h_${Date.now().toString(36)}_${(counter += 1)}`;
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [meta, setMeta] = useState<AppMeta>(DEFAULT_META);
+  /** Always-current mirror of `meta`, so writers never compose onto a stale
+   *  render snapshot. Every setMeta call must update this too. */
+  const metaRef = useRef<AppMeta>(DEFAULT_META);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [timetable, setTimetable] = useState<ClassSlot[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
