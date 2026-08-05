@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -63,6 +64,9 @@ const uid = () => `h_${Date.now().toString(36)}_${(counter += 1)}`;
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [meta, setMeta] = useState<AppMeta>(DEFAULT_META);
+  /** Always-current mirror of `meta`, so writers never compose onto a stale
+   *  render snapshot. Every setMeta call must update this too. */
+  const metaRef = useRef<AppMeta>(DEFAULT_META);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [timetable, setTimetable] = useState<ClassSlot[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -73,6 +77,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     db.loadAll()
       .then((data) => {
         if (cancelled) return;
+        metaRef.current = data.meta;
         setMeta(data.meta);
         setSubjects(data.subjects);
         setTimetable(data.timetable);
@@ -107,17 +112,28 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         if (hasProfile && patch.setupComplete) {
           // Remote wins, but never let blank remote fields wipe the locally
-          // saved academic scope — that scope is what the published timetable
-          // query filters on.
-          setMeta((prev) => {
-            const nextMeta = { ...DEFAULT_META, ...prev, ...patch } as AppMeta;
-            nextMeta.department = patch.department || prev.department || "";
-            nextMeta.semester = patch.semester || prev.semester || "";
-            nextMeta.section = patch.section || prev.section || "";
-            nextMeta.usn = patch.usn || prev.usn || "";
-            nextMeta.studentName = patch.studentName || prev.studentName || "";
-            void db.putMeta(nextMeta);
-            return nextMeta;
+          // saved identity/academic scope — that scope is what the published
+          // timetable query filters on. Any local value that fills a blank
+          // remote column is backfilled by the push effect below.
+          const prev = metaRef.current;
+          const nextMeta = { ...DEFAULT_META, ...prev, ...patch } as AppMeta;
+          nextMeta.department = patch.department || prev.department || "";
+          nextMeta.semester = patch.semester || prev.semester || "";
+          nextMeta.section = patch.section || prev.section || "";
+          nextMeta.usn = patch.usn || prev.usn || "";
+          nextMeta.email = patch.email || prev.email || session?.user.email || "";
+          nextMeta.studentName = patch.studentName || prev.studentName || "";
+          metaRef.current = nextMeta;
+          setMeta(nextMeta);
+          await db.putMeta(nextMeta);
+          console.info("[AttendX] profile fetched", {
+            usn: nextMeta.usn,
+            email: nextMeta.email,
+            department: nextMeta.department,
+            semester: nextMeta.semester,
+            section: nextMeta.section,
+            backfillNeeded:
+              !patch.usn || !patch.department || !patch.semester || !patch.section,
           });
           if (remote.subjects.length) {
             setSubjects(remote.subjects);
@@ -289,22 +305,26 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     await db.replaceTimetable(slots);
   }, []);
 
+  /* Both writers go through patchMeta, which composes onto a ref mirror
+   * instead of the render-scoped `meta` snapshot. Onboarding calls
+   * updateMeta() then completeSetup() in the same tick; with the old stale
+   * closure the second call re-wrote the pre-update object and wiped USN,
+   * email, department, semester and section. */
+  const patchMeta = useCallback(async (patch: Partial<AppMeta>) => {
+    const next: AppMeta = { ...metaRef.current, ...patch };
+    metaRef.current = next;
+    setMeta(next);
+    await db.putMeta(next);
+  }, []);
+
   const completeSetup = useCallback(
-    async (name: string) => {
-      const next: AppMeta = { ...meta, studentName: name, setupComplete: true };
-      setMeta(next);
-      await db.putMeta(next);
-    },
-    [meta],
+    (name: string) => patchMeta({ studentName: name, setupComplete: true }),
+    [patchMeta],
   );
 
   const updateMeta = useCallback(
-    async (patch: Partial<AppMeta>) => {
-      const next: AppMeta = { ...meta, ...patch };
-      setMeta(next);
-      await db.putMeta(next);
-    },
-    [meta],
+    (patch: Partial<AppMeta>) => patchMeta(patch),
+    [patchMeta],
   );
 
   const exportBackup = useCallback(
@@ -321,6 +341,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const restoreBackup = useCallback(async (payload: BackupPayload) => {
     const nextMeta = { ...DEFAULT_META, ...payload.meta, setupComplete: true };
+    metaRef.current = nextMeta;
     setMeta(nextMeta);
     setSubjects(payload.subjects ?? []);
     setTimetable(payload.timetable ?? []);
@@ -335,7 +356,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetApp = useCallback(async () => {
-    setMeta({ ...DEFAULT_META, createdAt: Date.now() });
+    const fresh = { ...DEFAULT_META, createdAt: Date.now() };
+    metaRef.current = fresh;
+    setMeta(fresh);
     setSubjects([]);
     setTimetable([]);
     setHistory([]);

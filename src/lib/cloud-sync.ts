@@ -76,7 +76,7 @@ export async function pullProfile(
 }
 
 export async function pushProfile(userId: string, meta: AppMeta) {
-  await supabase.from("profiles").upsert({
+  const { error } = await supabase.from("profiles").upsert({
     id: userId,
     student_name: meta.studentName ?? "",
     usn: meta.usn ?? "",
@@ -93,6 +93,16 @@ export async function pushProfile(userId: string, meta: AppMeta) {
     setup_complete: Boolean(meta.setupComplete),
     updated_at: new Date().toISOString(),
   });
+  console.info("[AttendX] profile saved", {
+    ok: !error,
+    error: error?.message,
+    usn: meta.usn,
+    email: meta.email,
+    department: meta.department,
+    semester: meta.semester,
+    section: meta.section,
+  });
+  if (error) throw error;
 }
 
 /* ------------------------------------------------------------ private data */
@@ -351,6 +361,7 @@ export async function pullPublishedTimetable(scope: ClassScope): Promise<ClassSl
     .eq("semester", scope.semester)
     .eq("section", scope.section)
     .eq("published", true);
+  console.info("[AttendX] timetable loaded", { scope, slots: data?.length ?? 0 });
   return (data ?? []).map((r) => ({
     id: r.id,
     day: r.day,

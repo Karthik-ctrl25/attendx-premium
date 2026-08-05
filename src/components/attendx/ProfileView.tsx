@@ -20,6 +20,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/attendx/Avatar";
+import { ClassPicker, type ClassChoice } from "@/components/attendx/ClassPicker";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -184,11 +185,26 @@ function IdentityCard() {
 /* Sub-page sections                                                   */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Read-only academic record. Accounts whose onboarding values were lost to the
+ * old stale-closure bug land here with blanks — for those, and only those, we
+ * expose a one-time recovery form so the record (and the published-timetable
+ * scope it feeds) can be filled in again. Once complete it locks for good.
+ */
 export function AcademicDetailsCard() {
-  const { meta } = useApp();
+  const { meta, updateMeta } = useApp();
   const joined = meta.createdAt
     ? new Date(meta.createdAt).toLocaleDateString(undefined, { month: "short", year: "numeric" })
     : "—";
+
+  const incomplete = !meta.department || !meta.semester || !meta.section || !meta.usn;
+  const [draft, setDraft] = useState<ClassChoice>({
+    department: meta.department || "",
+    semester: meta.semester || "",
+    section: meta.section || "",
+  });
+  const [usn, setUsn] = useState(meta.usn || "");
+  const [saving, setSaving] = useState(false);
 
   const rows = [
     { label: "USN", value: meta.usn },
@@ -199,14 +215,61 @@ export function AcademicDetailsCard() {
     { label: "Joined", value: joined },
   ];
 
+  const canSave =
+    Boolean(usn.trim() && draft.department && draft.semester && draft.section) && !saving;
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateMeta({
+        usn: usn.trim(),
+        department: draft.department,
+        semester: draft.semester,
+        section: draft.section,
+      });
+      toast.success("Academic details saved");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <GlassCard className="px-3.5 py-1">
-      <div className="divide-y divide-foreground/5">
-        {rows.map((r) => (
-          <InfoRow key={r.label} label={r.label} value={r.value} />
-        ))}
-      </div>
-    </GlassCard>
+    <div className="space-y-4">
+      <GlassCard className="px-3.5 py-1">
+        <div className="divide-y divide-foreground/5">
+          {rows.map((r) => (
+            <InfoRow key={r.label} label={r.label} value={r.value} />
+          ))}
+        </div>
+      </GlassCard>
+
+      {incomplete ? (
+        <GlassCard className="space-y-4 p-4">
+          <div>
+            <p className="text-[14px] font-medium">Complete your academic details</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              Some details are missing, so your published timetable can&apos;t load. Fill them in
+              once — they lock afterwards.
+            </p>
+          </div>
+          <Input
+            placeholder="USN"
+            aria-label="USN"
+            value={usn}
+            onChange={(e) => setUsn(e.target.value.toUpperCase())}
+            className="h-11 rounded-2xl"
+          />
+          <ClassPicker value={draft} onChange={setDraft} />
+          <Button
+            className="h-11 w-full rounded-2xl"
+            disabled={!canSave}
+            onClick={() => void save()}
+          >
+            Save details
+          </Button>
+        </GlassCard>
+      ) : null}
+    </div>
   );
 }
 
