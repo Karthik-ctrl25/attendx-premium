@@ -112,17 +112,28 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         if (hasProfile && patch.setupComplete) {
           // Remote wins, but never let blank remote fields wipe the locally
-          // saved academic scope — that scope is what the published timetable
-          // query filters on.
-          setMeta((prev) => {
-            const nextMeta = { ...DEFAULT_META, ...prev, ...patch } as AppMeta;
-            nextMeta.department = patch.department || prev.department || "";
-            nextMeta.semester = patch.semester || prev.semester || "";
-            nextMeta.section = patch.section || prev.section || "";
-            nextMeta.usn = patch.usn || prev.usn || "";
-            nextMeta.studentName = patch.studentName || prev.studentName || "";
-            void db.putMeta(nextMeta);
-            return nextMeta;
+          // saved identity/academic scope — that scope is what the published
+          // timetable query filters on. Any local value that fills a blank
+          // remote column is backfilled by the push effect below.
+          const prev = metaRef.current;
+          const nextMeta = { ...DEFAULT_META, ...prev, ...patch } as AppMeta;
+          nextMeta.department = patch.department || prev.department || "";
+          nextMeta.semester = patch.semester || prev.semester || "";
+          nextMeta.section = patch.section || prev.section || "";
+          nextMeta.usn = patch.usn || prev.usn || "";
+          nextMeta.email = patch.email || prev.email || session?.user.email || "";
+          nextMeta.studentName = patch.studentName || prev.studentName || "";
+          metaRef.current = nextMeta;
+          setMeta(nextMeta);
+          await db.putMeta(nextMeta);
+          console.info("[AttendX] profile fetched", {
+            usn: nextMeta.usn,
+            email: nextMeta.email,
+            department: nextMeta.department,
+            semester: nextMeta.semester,
+            section: nextMeta.section,
+            backfillNeeded:
+              !patch.usn || !patch.department || !patch.semester || !patch.section,
           });
           if (remote.subjects.length) {
             setSubjects(remote.subjects);
