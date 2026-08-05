@@ -1,13 +1,13 @@
 /**
- * Local evening reminder: "Did you attend today's classes?"
+ * Weekly ERP verification reminder.
  *
  * Fully offline — uses the Notification API when permitted and always falls
- * back to an in-app toast. Fires at most once per calendar day.
+ * back to an in-app toast. Fires at most once every seven days.
  */
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-import type { AppMeta, ClassSlot } from "./types";
+import type { AppMeta } from "./types";
 
 export const DEFAULT_REMINDER_TIME = "19:00";
 
@@ -28,54 +28,61 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
-function fire(count: number) {
-  const body = count
-    ? `You had ${count} class${count > 1 ? "es" : ""} today. Mark them in under 30 seconds.`
-    : "Open AttendX to keep your record up to date.";
+export const WEEKLY_REMINDER_MESSAGE =
+  "It's been a week since your last attendance verification. Open the CMR ERP, take a screenshot and upload it into AttendX.";
+
+function fire() {
   if (notificationsSupported() && Notification.permission === "granted") {
     try {
-      new Notification("Did you attend today's classes?", { body, tag: "attendx-daily" });
+      new Notification("\uD83D\uDCF8 Weekly attendance check", {
+        body: WEEKLY_REMINDER_MESSAGE,
+        tag: "attendx-weekly",
+      });
       return;
     } catch {
       /* fall through to toast */
     }
   }
-  toast("Did you attend today's classes?", { description: body, duration: 10_000 });
+  toast("\uD83D\uDCF8 Weekly attendance check", {
+    description: WEEKLY_REMINDER_MESSAGE,
+    duration: 10_000,
+  });
 }
 
-/** Polls every minute while the app is open and fires once past the set time. */
-export function useDailyReminder(
+const WEEK_MS = 7 * 86_400_000;
+
+/**
+ * Weekly ERP verification reminder. Fires at most once every 7 days, and only
+ * when the last verification is itself at least a week old.
+ */
+export function useWeeklyReminder(
   meta: AppMeta,
-  timetable: ClassSlot[],
   updateMeta: (patch: Partial<AppMeta>) => Promise<void>,
 ) {
-  const latest = useRef({ meta, timetable, updateMeta });
-  latest.current = { meta, timetable, updateMeta };
+  const latest = useRef({ meta, updateMeta });
+  latest.current = { meta, updateMeta };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const check = () => {
-      const { meta: m, timetable: tt, updateMeta: save } = latest.current;
+      const { meta: m, updateMeta: save } = latest.current;
       if (!m.setupComplete || m.reminderEnabled === false) return;
 
-      const key = todayKey();
-      if (m.lastReminderDate === key) return;
+      const now = Date.now();
+      if (m.lastVerifiedAt && now - m.lastVerifiedAt < WEEK_MS) return;
 
-      const now = new Date();
-      const [h, min] = (m.reminderTime || DEFAULT_REMINDER_TIME).split(":").map(Number);
-      const due = now.getHours() > h || (now.getHours() === h && now.getMinutes() >= min);
-      if (!due) return;
+      const lastFired = m.lastReminderDate ? Date.parse(`${m.lastReminderDate}T00:00:00`) : 0;
+      if (Number.isFinite(lastFired) && lastFired && now - lastFired < WEEK_MS) return;
 
-      const classes = tt.filter((s) => s.day === now.getDay()).length;
-      void save({ lastReminderDate: key });
-      fire(classes);
+      void save({ lastReminderDate: todayKey() });
+      fire();
     };
 
-    const timer = window.setInterval(check, 60_000);
+    const timer = window.setInterval(check, 60 * 60_000);
     const onVisible = () => document.visibilityState === "visible" && check();
     document.addEventListener("visibilitychange", onVisible);
-    const first = window.setTimeout(check, 4_000);
+    const first = window.setTimeout(check, 5_000);
 
     return () => {
       window.clearInterval(timer);

@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { supabase } from "@/integrations/supabase/client";
+
 import { db, DEFAULT_META } from "./db";
 import {
   pullPrivateData,
@@ -17,7 +19,9 @@ import {
   pushPrivateData,
   pushProfile,
   scopeOf,
+  type ClassScope,
 } from "./cloud-sync";
+
 import { useSession } from "./session";
 import type {
   AppMeta,
@@ -93,12 +97,26 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   /* ------------------------------------------------------- cloud sync ---
    * IndexedDB stays the offline cache. When a session exists we hydrate from
-   * the backend first (remote wins for an already-set-up account), then push
-   * local changes back on every mutation.
+   * the backend, then push local changes back on every mutation.
+   *
+   * Order matters: the admin-published class timetable is the single source of
+   * truth for a Department + Semester + Section. The student's own
+   * `timetable_slots` rows are only a fallback for classes with no published
+   * timetable — hydrating them after (or in parallel with) the published pull
+   * used to overwrite the published one, which is why two students in the same
+   * class could disagree.
    */
   const session = useSession();
   const userId = session?.user.id ?? null;
   const [hydrated, setHydrated] = useState(false);
+  /** True while the timetable in state came from the published class table. */
+  const publishedRef = useRef(false);
+
+  const applyPublished = useCallback(async (slots: ClassSlot[]) => {
+    publishedRef.current = true;
+    setTimetable(slots);
+    await db.replaceTimetable(slots);
+  }, []);
 
   useEffect(() => {
     if (!ready || !userId) return;
@@ -111,35 +129,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         ]);
         if (cancelled) return;
         if (hasProfile && patch.setupComplete) {
-          // Remote wins, but never let blank remote fields wipe the locally
-          // saved identity/academic scope — that scope is what the published
-          // timetable query filters on. Any local value that fills a blank
-          // remote column is backfilled by the push effect below.
+          // The profile page is the source of truth for the academic scope:
+          // a locally saved Department / Semester / Section is never replaced
+          // by hydration, and blank remote columns never wipe local values.
           const prev = metaRef.current;
           const nextMeta = { ...DEFAULT_META, ...prev, ...patch } as AppMeta;
-          nextMeta.department = patch.department || prev.department || "";
-          nextMeta.semester = patch.semester || prev.semester || "";
-          nextMeta.section = patch.section || prev.section || "";
-          nextMeta.usn = patch.usn || prev.usn || "";
-          nextMeta.email = patch.email || prev.email || session?.user.email || "";
-          nextMeta.studentName = patch.studentName || prev.studentName || "";
+          nextMeta.department = prev.department || patch.department || "";
+          nextMeta.semester = prev.semester || patch.semester || "";
+          nextMeta.section = prev.section || patch.section || "";
+          nextMeta.usn = prev.usn || patch.usn || "";
+          nextMeta.email = prev.email || patch.email || session?.user.email || "";
+          nextMeta.studentName = prev.studentName || patch.studentName || "";
           metaRef.current = nextMeta;
           setMeta(nextMeta);
           await db.putMeta(nextMeta);
-          console.info("[AttendX] profile fetched", {
-            usn: nextMeta.usn,
-            email: nextMeta.email,
-            department: nextMeta.department,
-            semester: nextMeta.semester,
-            section: nextMeta.section,
-            backfillNeeded:
-              !patch.usn || !patch.department || !patch.semester || !patch.section,
-          });
+
           if (remote.subjects.length) {
             setSubjects(remote.subjects);
             await db.putSubjects(remote.subjects);
           }
-          if (remote.timetable.length) {
+          // Only a fallback — never allowed to clobber a published timetable.
+          if (remote.timetable.length && !publishedRef.current) {
             setTimetable(remote.timetable);
             await db.replaceTimetable(remote.timetable);
           }
@@ -161,38 +171,87 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
   }, [ready, userId]);
 
-  /* An admin-published class timetable always wins over the local one. Runs
-   * whenever the student's Department / Semester / Section is known, and the
-   * result is cached in IndexedDB so navigation stays instant offline. */
+  /* The published timetable for the student's class. Pulled as soon as the
+   * scope is known, cached in IndexedDB for instant offline navigation, and
+   * kept live through Realtime so admin uploads / edits / deletes reach every
+   * student in that class without a refresh, logout or reinstall. */
   const scopeKey = `${meta.department}|${meta.semester}|${meta.section}`;
   useEffect(() => {
     if (!ready || !userId) return;
-    const scope = scopeOf(meta);
+    const scope = scopeOf(metaRef.current);
     if (!scope) return;
     let cancelled = false;
-    pullPublishedTimetable(scope)
-      .then(async (published) => {
-        if (cancelled || !published.length) return;
-        setTimetable(published);
-        await db.replaceTimetable(published);
-      })
-      .catch(() => undefined);
+
+    const sync = async () => {
+      try {
+        const published = await pullPublishedTimetable(scope);
+        if (cancelled) return;
+        if (published.length) {
+          await applyPublished(published);
+        } else if (publishedRef.current) {
+          // Timetable was unpublished — drop the cached copy.
+          publishedRef.current = false;
+          setTimetable([]);
+          await db.replaceTimetable([]);
+        }
+      } catch {
+        /* offline — keep the cached timetable */
+      }
+    };
+
+    void sync();
+
+    let debounce: ReturnType<typeof setTimeout> | undefined;
+    const channel = supabase
+      .channel(`class-timetable:${scopeKey}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "class_timetable_slots" },
+        (payload: { new?: unknown; old?: unknown }) => {
+          const row = (payload.new ?? payload.old) as Partial<ClassScope> | null;
+          if (
+            row &&
+            row.department &&
+            (row.department !== scope.department ||
+              row.semester !== scope.semester ||
+              row.section !== scope.section)
+          ) {
+            return;
+          }
+          clearTimeout(debounce);
+          debounce = setTimeout(() => void sync(), 400);
+        },
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      clearTimeout(debounce);
+      void supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, userId, scopeKey]);
-
+  }, [ready, userId, scopeKey, applyPublished]);
 
   useEffect(() => {
     if (!userId || !hydrated || !meta.setupComplete) return;
     const t = setTimeout(() => {
       pushProfile(userId, meta)
-        .then(() => pushPrivateData(userId, { subjects, timetable, history, imports }))
+        .then(() =>
+          pushPrivateData(userId, {
+            subjects,
+            // A published timetable belongs to the class, not the student —
+            // mirroring it into private rows resurrects stale slots later.
+            timetable: publishedRef.current ? [] : timetable,
+            history,
+            imports,
+          }),
+        )
         .catch(() => undefined);
     }, 800);
     return () => clearTimeout(t);
   }, [userId, hydrated, meta, subjects, timetable, history, imports]);
+
+
 
   const saveSubjects = useCallback(async (next: Subject[]) => {
     setSubjects(next);
