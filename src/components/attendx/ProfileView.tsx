@@ -20,6 +20,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/attendx/Avatar";
+import { ClassPicker, type ClassChoice } from "@/components/attendx/ClassPicker";
 import { GlassCard, SectionTitle } from "@/components/attendx/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
