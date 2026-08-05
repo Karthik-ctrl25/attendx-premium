@@ -43,7 +43,6 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
             className="size-full object-cover"
           />
         ) : (
-        ) : (
           <div className="absolute inset-0 grid place-items-center">
             <div
               className="absolute inset-0 opacity-70"
