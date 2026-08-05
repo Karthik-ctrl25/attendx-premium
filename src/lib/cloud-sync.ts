@@ -76,7 +76,7 @@ export async function pullProfile(
 }
 
 export async function pushProfile(userId: string, meta: AppMeta) {
-  await supabase.from("profiles").upsert({
+  const { error } = await supabase.from("profiles").upsert({
     id: userId,
     student_name: meta.studentName ?? "",
     usn: meta.usn ?? "",
@@ -93,6 +93,16 @@ export async function pushProfile(userId: string, meta: AppMeta) {
     setup_complete: Boolean(meta.setupComplete),
     updated_at: new Date().toISOString(),
   });
+  console.info("[AttendX] profile saved", {
+    ok: !error,
+    error: error?.message,
+    usn: meta.usn,
+    email: meta.email,
+    department: meta.department,
+    semester: meta.semester,
+    section: meta.section,
+  });
+  if (error) throw error;
 }
 
 /* ------------------------------------------------------------ private data */
