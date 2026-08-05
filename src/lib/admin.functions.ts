@@ -441,3 +441,76 @@ export const adminListClassScopes = createServerFn({ method: "GET" })
         a.section.localeCompare(b.section),
     );
   });
+
+/* ------------------------------------------- timetable draft publishing */
+
+interface DraftSlotInput {
+  day: number;
+  start_time: string;
+  end_time: string;
+  code: string;
+  name: string;
+  faculty: string;
+  room: string;
+  session: string;
+}
+
+/**
+ * Publishes an admin-reviewed timetable draft in one shot. Nothing reaches the
+ * database until this is called, and `replace` clears the existing timetable
+ * for that Department + Semester + Section first so students never end up with
+ * a merged, stale schedule.
+ */
+export const adminPublishTimetableDraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: ClassScopeInput & { slots: DraftSlotInput[]; replace: boolean }) => input,
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context as Ctx);
+    const supabase = (context as Ctx).supabase;
+    const scope = {
+      department: data.department,
+      semester: data.semester,
+      section: data.section,
+    };
+
+    if (data.replace) {
+      const { error: delError } = await supabase
+        .from("class_timetable_slots")
+        .delete()
+        .eq("department", scope.department)
+        .eq("semester", scope.semester)
+        .eq("section", scope.section);
+      if (delError) throw delError;
+    }
+
+    const rows = data.slots.map((s) => ({
+      ...scope,
+      day: s.day,
+      start_time: s.start_time,
+      end_time: s.end_time,
+      code: s.code,
+      name: s.name,
+      faculty: s.faculty,
+      room: s.room,
+      session: s.session,
+      published: true,
+    }));
+
+    if (rows.length) {
+      const { error } = await supabase.from("class_timetable_slots").insert(rows);
+      if (error) throw error;
+    }
+
+    // Anything already stored for this class goes live together with the draft.
+    const { error: pubError } = await supabase
+      .from("class_timetable_slots")
+      .update({ published: true })
+      .eq("department", scope.department)
+      .eq("semester", scope.semester)
+      .eq("section", scope.section);
+    if (pubError) throw pubError;
+
+    return { ok: true, count: rows.length };
+  });
