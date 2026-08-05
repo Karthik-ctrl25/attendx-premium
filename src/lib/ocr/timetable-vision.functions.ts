@@ -8,6 +8,8 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 export interface TimetableVisionRow {
   /** 0 = Sunday … 6 = Saturday */
   day: number;

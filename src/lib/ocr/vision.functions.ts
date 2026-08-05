@@ -7,6 +7,8 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 export interface VisionRow {
   courseCode: string;
   courseName: string;
@@ -103,6 +105,7 @@ const normalizeConfidence = (v: number) => {
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
 export const extractAttendanceVision = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(validateInput)
   .handler(async ({ data }): Promise<VisionResult> => {
     const apiKey = process.env.LOVABLE_API_KEY;
