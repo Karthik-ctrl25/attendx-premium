@@ -39,17 +39,18 @@ function greeting(hour: number) {
 }
 
 function Dashboard() {
-  const { subjects, timetable, meta } = useApp();
+  const { subjects, timetable, history, meta, mark } = useApp();
   const now = new Date();
   const day = now.getDay();
   const stats = overallStats(subjects);
   const safeBunks = classesCanMiss(stats.present, stats.total, 75);
 
-  const todays = timetable
-    .filter((s) => s.day === day)
-    .sort((a, b) => a.start.localeCompare(b.start));
+  const todays = useMemo(() => todaysSlots(timetable), [timetable]);
+  const marks = useMemo(() => todaysMarks(history), [history]);
+  const allMarked = todays.length > 0 && todays.every((s) => marks[s.id]);
   const clock = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   const next = todays.find((s) => s.start > clock);
+
 
   const verified = meta.lastVerifiedAt
     ? new Date(meta.lastVerifiedAt).toLocaleDateString(undefined, {
