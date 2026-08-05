@@ -68,7 +68,7 @@ export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
               <div className="text-center">
                 <p className="font-display text-lg font-semibold tracking-tight">Tutorial Video</p>
                 <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  {playing ? "Video coming soon" : "Video Placeholder"}
+                  {missing ? "Add public/tutorial.mp4" : "Tap to play"}
                 </p>
               </div>
             </div>
