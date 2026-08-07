@@ -33,6 +33,20 @@ function toGeminiSchema(schema: unknown): unknown {
   return schema;
 }
 
+/** Extracts a readable reason from a Gemini error body (never echoes the key). */
+function reasonOf(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string; status?: string } };
+    const message = parsed.error?.message ?? "";
+    const status = parsed.error?.status ?? "";
+    const text = [status, message].filter(Boolean).join(" — ");
+    if (text) return text.replace(/key=[\w-]+/gi, "key=***").slice(0, 300);
+  } catch {
+    /* fall through to the raw body */
+  }
+  return body.replace(/key=[\w-]+/gi, "key=***").slice(0, 300);
+}
+
 /**
  * Runs one JSON-schema-constrained vision request and returns the raw JSON text.
  */
@@ -72,9 +86,9 @@ export async function generateJson(options: {
     const body = await response.text();
     if (response.status === 429)
       throw new Error("AI is busy right now. Please try again shortly.");
-    if (response.status === 401 || response.status === 403)
-      throw new Error("AI is not configured correctly for this project.");
-    throw new Error(`Vision request failed [${response.status}]: ${body.slice(0, 300)}`);
+    // Surface the provider's actual reason instead of a blanket
+    // "not configured" — the key can be present but restricted or unbilled.
+    throw new Error(`Vision request failed [${response.status}]: ${reasonOf(body)}`);
   }
 
   const payload = (await response.json()) as {
