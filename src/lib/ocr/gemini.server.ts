@@ -33,6 +33,20 @@ function toGeminiSchema(schema: unknown): unknown {
   return schema;
 }
 
+/** Extracts a readable reason from a Gemini error body (never echoes the key). */
+function reasonOf(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string; status?: string } };
+    const message = parsed.error?.message ?? "";
+    const status = parsed.error?.status ?? "";
+    const text = [status, message].filter(Boolean).join(" — ");
+    if (text) return text.replace(/key=[\w-]+/gi, "key=***").slice(0, 300);
+  } catch {
+    /* fall through to the raw body */
+  }
+  return body.replace(/key=[\w-]+/gi, "key=***").slice(0, 300);
+}
+
 /**
  * Runs one JSON-schema-constrained vision request and returns the raw JSON text.
  */
