@@ -34,6 +34,7 @@ import { Route as ProfileAcademicRouteImport } from './routes/profile.academic'
 import { Route as ProfileAppearanceRouteImport } from './routes/profile.appearance'
 import { Route as ProfileLinksRouteImport } from './routes/profile.links'
 import { Route as ProfileNotificationsRouteImport } from './routes/profile.notifications'
+import { Route as ApiPublicAiStatusRouteImport } from './routes/api/public/ai-status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -160,6 +161,11 @@ const ProfileNotificationsRoute = ProfileNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => ProfileRoute,
 } as any)
+const ApiPublicAiStatusRoute = ApiPublicAiStatusRouteImport.update({
+  id: '/api/public/ai-status',
+  path: '/api/public/ai-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/attendance/': typeof AttendanceIndexRoute
   '/profile/': typeof ProfileIndexRoute
+  '/api/public/ai-status': typeof ApiPublicAiStatusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/attendance': typeof AttendanceIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/api/public/ai-status': typeof ApiPublicAiStatusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/attendance/': typeof AttendanceIndexRoute
   '/profile/': typeof ProfileIndexRoute
+  '/api/public/ai-status': typeof ApiPublicAiStatusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/attendance/'
     | '/profile/'
+    | '/api/public/ai-status'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/attendance'
     | '/profile'
+    | '/api/public/ai-status'
   id:
     | '__root__'
     | '/'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/attendance/'
     | '/profile/'
+    | '/api/public/ai-status'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -335,6 +347,7 @@ export interface RootRouteChildren {
   VerifyRoute: typeof VerifyRoute
   AttendanceCodeRoute: typeof AttendanceCodeRoute
   AttendanceIndexRoute: typeof AttendanceIndexRoute
+  ApiPublicAiStatusRoute: typeof ApiPublicAiStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -514,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileNotificationsRouteImport
       parentRoute: typeof ProfileRoute
     }
+    '/api/public/ai-status': {
+      id: '/api/public/ai-status'
+      path: '/api/public/ai-status'
+      fullPath: '/api/public/ai-status'
+      preLoaderRoute: typeof ApiPublicAiStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -574,17 +594,8 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyRoute: VerifyRoute,
   AttendanceCodeRoute: AttendanceCodeRoute,
   AttendanceIndexRoute: AttendanceIndexRoute,
+  ApiPublicAiStatusRoute: ApiPublicAiStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
