@@ -43,9 +43,10 @@ export async function generateJson(options: {
   /** Higher budgets trade latency for accuracy; 0 disables thinking. */
   thinkingBudget?: number;
 }): Promise<string> {
-  // Read the private credential at request time from the server runtime. VITE_
-  // variables are build-time/public configuration and must not hold API keys.
-  const apiKey = process.env['GEMINI_API_KEY'];
+  // Read the private credential at request time from whichever env container the
+  // deploy target exposes (Node `process.env`, or an edge/worker equivalent).
+  const { readServerEnv } = await import("@/lib/server-env.server");
+  const apiKey = readServerEnv("GEMINI_API_KEY");
   if (!apiKey)
     throw new Error(
       "AI is not configured for this project. Set GEMINI_API_KEY in the production environment and redeploy.",
