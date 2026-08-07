@@ -72,9 +72,9 @@ export async function generateJson(options: {
     const body = await response.text();
     if (response.status === 429)
       throw new Error("AI is busy right now. Please try again shortly.");
-    if (response.status === 401 || response.status === 403)
-      throw new Error("AI is not configured correctly for this project.");
-    throw new Error(`Vision request failed [${response.status}]: ${body.slice(0, 300)}`);
+    // Surface the provider's actual reason instead of a blanket
+    // "not configured" — the key can be present but restricted or unbilled.
+    throw new Error(`Vision request failed [${response.status}]: ${reasonOf(body)}`);
   }
 
   const payload = (await response.json()) as {
