@@ -43,16 +43,12 @@ export async function generateJson(options: {
   /** Higher budgets trade latency for accuracy; 0 disables thinking. */
   thinkingBudget?: number;
 }): Promise<string> {
-  // Hosts differ in how server env vars reach the SSR bundle: Lovable/Cloudflare
-  // exposes process.env, while Vercel builds inline only VITE_-prefixed values.
-  // This module is server-only (*.server.ts), so neither name reaches the client.
-  const apiKey =
-    process.env['GEMINI_API_KEY'] ||
-    process.env['VITE_GEMINI_API_KEY'] ||
-    import.meta.env['VITE_GEMINI_API_KEY'];
+  // Read the private credential at request time from the server runtime. VITE_
+  // variables are build-time/public configuration and must not hold API keys.
+  const apiKey = process.env['GEMINI_API_KEY'];
   if (!apiKey)
     throw new Error(
-      "AI is not configured for this project. Set GEMINI_API_KEY (or VITE_GEMINI_API_KEY) in the deployment environment.",
+      "AI is not configured for this project. Set GEMINI_API_KEY in the production environment and redeploy.",
     );
 
   const response = await fetch(ENDPOINT, {
