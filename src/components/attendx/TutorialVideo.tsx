@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { RotateCcw, SkipForward } from "lucide-react";
 import { useRef, useState } from "react";
-import tutorialAsset from "@/assets/tutorial.mp4.asset.json";
 
-const VIDEO_SRC = tutorialAsset.url;
+// Served as a static file from public/ so it works identically on Lovable and Vercel.
+const VIDEO_SRC = "/media/tutorial.mp4";
 
 export function TutorialVideo({ onSkip }: { onSkip?: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
