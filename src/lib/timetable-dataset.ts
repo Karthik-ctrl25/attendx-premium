@@ -30,7 +30,7 @@ export const DEPARTMENTS = [
 
 export const SEMESTERS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
 
-export const SECTIONS = ["A", "B", "C", "D"] as const;
+export const SECTIONS = ["A", "B", "C", "D", "E", "F"] as const;
 
 /** A class entry without a runtime id — ids are generated on load. */
 export interface DatasetSlot {
