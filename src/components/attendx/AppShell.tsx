@@ -85,8 +85,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
 
-      <main className="min-w-0 flex-1 pb-28 lg:pb-10">
-        <div className="mx-auto w-full max-w-3xl px-4 pt-5 sm:px-6 lg:max-w-5xl lg:px-8 xl:px-10">
+      <main className="min-w-0 flex-1 pb-28 lg:pb-14">
+        <div className="mx-auto w-full max-w-3xl px-4 pt-5 sm:px-6 lg:max-w-[1080px] lg:px-10 lg:pt-10 xl:max-w-[1200px] xl:px-12 2xl:max-w-[1320px]">
+
           <header className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 lg:hidden">
             <Brand />
             <NotificationBell />

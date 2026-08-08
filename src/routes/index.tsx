@@ -71,9 +71,12 @@ function Dashboard() {
         </h1>
       </header>
 
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <div className="min-w-0 space-y-5">
       <SemesterCard compact />
 
       <GlassCard strong className="flex flex-col items-center gap-4 p-6">
+
         <AttendanceRing value={stats.pct} total={stats.total} size={150} sublabel="Overall" />
         <div className="grid w-full grid-cols-3 gap-2 text-center">
           {[
@@ -108,7 +111,24 @@ function Dashboard() {
         )}
       </GlassCard>
 
-      <section>
+      <GlassCard delay={0.1} className="flex min-w-0 items-center gap-3 p-4">
+        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+          <ShieldCheck className="size-4 text-muted-foreground" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Last verified
+          </p>
+          <p className="truncate text-sm font-semibold">{verified}</p>
+        </div>
+        <Button asChild size="sm" variant="secondary" className="shrink-0 rounded-xl">
+          <Link to="/verify">Verify now</Link>
+        </Button>
+      </GlassCard>
+        </div>
+
+      <section className="min-w-0 pb-2">
+
         <SectionTitle
           title="Today's classes"
           subtitle={todays.length ? `${todays.length} scheduled` : "Nothing scheduled"}
@@ -178,22 +198,8 @@ function Dashboard() {
           </GlassCard>
         )}
       </section>
-
-      <GlassCard delay={0.1} className="mb-2 flex min-w-0 items-center gap-3 p-4">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-          <ShieldCheck className="size-4 text-muted-foreground" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Last verified
-          </p>
-          <p className="truncate text-sm font-semibold">{verified}</p>
-        </div>
-        <Button asChild size="sm" variant="secondary" className="shrink-0 rounded-xl">
-          <Link to="/verify">Verify now</Link>
-        </Button>
-      </GlassCard>
-
+      </div>
     </div>
+
   );
 }
