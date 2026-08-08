@@ -147,7 +147,7 @@ function SubjectsTab() {
     );
   }
   return (
-    <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+    <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {subjects.map((s, i) => (
         <SubjectCard key={s.code} subject={s} index={i} />
       ))}
