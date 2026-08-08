@@ -113,11 +113,18 @@ function ClassPage() {
         </p>
       </header>
 
-      <CrCard />
-      <Announcements role={role} />
-      <Polls role={role} />
-      <Upcoming role={role} />
-      <ImportantLinks />
+      <div className="grid min-w-0 items-start gap-6 xl:grid-cols-2">
+        <div className="min-w-0 space-y-6">
+          <CrCard />
+          <Announcements role={role} />
+        </div>
+        <div className="min-w-0 space-y-6">
+          <Polls role={role} />
+          <Upcoming role={role} />
+          <ImportantLinks />
+        </div>
+      </div>
+
     </div>
   );
 }
