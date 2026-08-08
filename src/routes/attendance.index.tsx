@@ -65,48 +65,51 @@ function AttendanceIndex() {
         <p className="mt-1 text-sm text-muted-foreground">{subjects.length} subjects tracked</p>
       </header>
 
-      <GlassCard strong className="flex min-w-0 items-center gap-5 p-5">
-        <AttendanceRing
-          value={stats.pct}
-          total={stats.total}
-          size={112}
-          stroke={11}
-          sublabel="Overall"
-          className="shrink-0"
-        />
-        <div className="grid min-w-0 flex-1 gap-2">
-          {[
-            { label: "Present", value: stats.present },
-            { label: "Absent", value: stats.absent },
-            { label: "Safe bunks", value: safe },
-          ].map((x) => (
-            <div
-              key={x.label}
-              className="flex min-w-0 items-center justify-between rounded-2xl bg-white/60 px-3 py-2"
-            >
-              <span className="truncate text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                {x.label}
-              </span>
-              <span className="tnum shrink-0 font-display text-base font-semibold">{x.value}</span>
-            </div>
-          ))}
-        </div>
-      </GlassCard>
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <GlassCard strong className="flex min-w-0 items-center gap-5 p-5">
+          <AttendanceRing
+            value={stats.pct}
+            total={stats.total}
+            size={112}
+            stroke={11}
+            sublabel="Overall"
+            className="shrink-0"
+          />
+          <div className="grid min-w-0 flex-1 gap-2">
+            {[
+              { label: "Present", value: stats.present },
+              { label: "Absent", value: stats.absent },
+              { label: "Safe bunks", value: safe },
+            ].map((x) => (
+              <div
+                key={x.label}
+                className="flex min-w-0 items-center justify-between rounded-2xl bg-white/60 px-3 py-2"
+              >
+                <span className="truncate text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  {x.label}
+                </span>
+                <span className="tnum shrink-0 font-display text-base font-semibold">{x.value}</span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
 
-      <GlassCard className="flex min-w-0 items-center gap-3 p-4">
-        <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
-          <ShieldCheck className="size-4 text-muted-foreground" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Verify ERP
-          </p>
-          <p className="truncate text-sm font-semibold">Last verified {verified}</p>
-        </div>
-        <Button asChild size="sm" variant="secondary" className="shrink-0 rounded-xl">
-          <Link to="/verify">Verify</Link>
-        </Button>
-      </GlassCard>
+        <GlassCard className="flex min-w-0 items-center gap-3 p-4 lg:h-full">
+          <span className="grid size-9 shrink-0 place-items-center rounded-2xl bg-white/70 shadow-soft">
+            <ShieldCheck className="size-4 text-muted-foreground" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Verify ERP
+            </p>
+            <p className="truncate text-sm font-semibold">Last verified {verified}</p>
+          </div>
+          <Button asChild size="sm" variant="secondary" className="shrink-0 rounded-xl">
+            <Link to="/verify">Verify</Link>
+          </Button>
+        </GlassCard>
+      </div>
+
 
       <div className="glass grid grid-cols-4 gap-1 rounded-2xl p-1">
         {TABS.map((t) => (
