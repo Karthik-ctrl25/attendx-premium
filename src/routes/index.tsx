@@ -71,9 +71,12 @@ function Dashboard() {
         </h1>
       </header>
 
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <div className="min-w-0 space-y-5">
       <SemesterCard compact />
 
       <GlassCard strong className="flex flex-col items-center gap-4 p-6">
+
         <AttendanceRing value={stats.pct} total={stats.total} size={150} sublabel="Overall" />
         <div className="grid w-full grid-cols-3 gap-2 text-center">
           {[
