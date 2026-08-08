@@ -82,7 +82,7 @@ function TimetablePage() {
       <h2 className="font-display text-lg font-semibold">{DAYS[active]}</h2>
 
       {slots.length ? (
-        <div className="grid min-w-0 gap-3 xl:grid-cols-2">
+        <div className="grid min-w-0 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
           {slots.map((slot, i) => (
             <GlassCard key={slot.id} delay={i * 0.04} hover className="p-5">
               <div className="flex flex-wrap items-center gap-5">
