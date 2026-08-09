@@ -126,6 +126,14 @@ export async function extractAttendanceFromImage(
     scanStep: 3,
   });
 
+  // Canvas preprocessing can fall back to the raw file (e.g. an unreadable
+  // decode); guard here so oversized uploads fail with a clear, actionable
+  // message instead of a generic server error.
+  if (image.dataUrl.length > 11_500_000)
+    throw new Error(
+      "That screenshot is too large to analyse. Please upload a cropped or smaller image.",
+    );
+
   const key = `${image.dataUrl.length}:${image.dataUrl.slice(-96)}`;
   if (lastRun && lastRun.key === key) {
     onStage?.("Done");
