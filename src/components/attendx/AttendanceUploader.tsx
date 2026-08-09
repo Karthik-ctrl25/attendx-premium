@@ -41,6 +41,9 @@ export function AttendanceUploader({
   const { imports } = useApp();
 
   const inputRef = useRef<HTMLInputElement>(null);
+  // Guards against a second OCR request being started before the first
+  // settles (double click, drop while busy) — state alone updates too late.
+  const runningRef = useRef(false);
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState(0);
@@ -50,11 +53,12 @@ export function AttendanceUploader({
 
   const run = useCallback(
     async (file?: File | null) => {
-      if (!file) return;
+      if (!file || runningRef.current) return;
       if (!ACCEPT.includes(file.type)) {
         setError("Only PNG, JPG and JPEG screenshots are supported.");
         return;
       }
+      runningRef.current = true;
       setError("");
       setBusy(true);
       setStage(0);
