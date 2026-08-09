@@ -100,6 +100,7 @@ export function AttendanceUploader({
           );
         }
       } finally {
+        runningRef.current = false;
         setBusy(false);
       }
     },
