@@ -66,29 +66,57 @@ export async function generateJson(options: {
       "AI is not configured for this project. Set GEMINI_API_KEY in the production environment and redeploy.",
     );
 
-  const response = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: options.systemPrompt }] },
-      contents: [{ role: "user", parts: options.parts }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: toGeminiSchema(options.schema),
-        ...(options.thinkingBudget === undefined
-          ? {}
-          : { thinkingConfig: { thinkingBudget: options.thinkingBudget } }),
-      },
-    }),
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: options.systemPrompt }] },
+    contents: [{ role: "user", parts: options.parts }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: toGeminiSchema(options.schema),
+      ...(options.thinkingBudget === undefined
+        ? {}
+        : { thinkingConfig: { thinkingBudget: options.thinkingBudget } }),
+    },
   });
 
+  // One bounded attempt, plus a single retry for transient upstream failures.
+  // Without a timeout a stalled request leaves the uploader spinning forever.
+  const attempt = async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 60_000);
+    try {
+      return await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  const RETRYABLE = new Set([500, 502, 503, 504]);
+  let response: Response;
+  try {
+    response = await attempt();
+    if (RETRYABLE.has(response.status)) response = await attempt();
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError")
+      throw new Error("Reading the screenshot took too long. Please try again.");
+    try {
+      response = await attempt();
+    } catch {
+      throw new Error("Could not reach the AI service. Check your connection and try again.");
+    }
+  }
+
   if (!response.ok) {
-    const body = await response.text();
+    const text = await response.text();
     if (response.status === 429)
       throw new Error("AI is busy right now. Please try again shortly.");
     // Surface the provider's actual reason instead of a blanket
     // "not configured" — the key can be present but restricted or unbilled.
-    throw new Error(`Vision request failed [${response.status}]: ${reasonOf(body)}`);
+    throw new Error(`Vision request failed [${response.status}]: ${reasonOf(text)}`);
   }
 
   const payload = (await response.json()) as {
