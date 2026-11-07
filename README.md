@@ -1,10 +1,12 @@
 # AttendX Premium
 
-AttendX is a smart attendance and timetable platform built exclusively for CMR University students.
+A smart attendance and timetable platform built exclusively for CMR University students.
+
+**Live:** [attendx-premium.vercel.app](https://attendx-premium.vercel.app/)
 
 ## Features
 
-- Google & Email Authentication
+- Google and Email Authentication
 - Offline-first PWA
 - AI-powered Attendance OCR
 - AI-powered Timetable OCR
@@ -16,21 +18,18 @@ AttendX is a smart attendance and timetable platform built exclusively for CMR U
 - Class Representative System
 - Admin Dashboard
 - Supabase Cloud Sync
-- Responsive Mobile & Desktop UI
+- Responsive Mobile and Desktop UI
 - Apple-inspired Design
 
 ## Tech Stack
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- shadcn/ui
-- Framer Motion
-- Supabase
-- IndexedDB
-- OpenAI Vision OCR
-- PWA
+| Area | Technologies |
+| --- | --- |
+| Frontend | React, TypeScript, Vite |
+| UI | Tailwind CSS, shadcn/ui, Framer Motion |
+| Backend and Database | Supabase, IndexedDB |
+| AI / OCR | OpenAI Vision OCR |
+| App Type | PWA |
 
 ## Modules
 
@@ -56,8 +55,6 @@ AttendX is a smart attendance and timetable platform built exclusively for CMR U
 
 Optimized specifically for CMR University ERP screenshots.
 
-Supports:
-
 - Attendance extraction
 - Timetable extraction
 - Editable preview
@@ -74,6 +71,4 @@ Supports:
 
 ## Status
 
-Version 1
-
-Built for CMR University.
+Version 1, built for CMR University.
